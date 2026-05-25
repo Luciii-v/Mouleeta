@@ -1,0 +1,140 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bone-surface: #f6f1e8;
+  --color-onyx-foreground: #231f20;
+  --color-paper-highlight: #ffffff;
+  --color-graphite-muted: #4a4647;
+  --color-outline: #7e7577;
+  --color-outline-variant: #cfc4c6;
+  --color-surface: #fdf8f8;
+  --color-surface-dim: #ddd9d8;
+  --color-surface-bright: #fdf8f8;
+  --color-surface-container: #f1edec;
+  --color-surface-container-low: #f7f2f2;
+  --color-surface-container-high: #ece7e7;
+  --color-surface-container-highest: #e6e1e1;
+  
+  --color-primary: #0a0708;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #231f20;
+  --color-on-primary-container: #8d8687;
+  
+  --color-secondary: #615e57;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #e7e2d9;
+  --color-on-secondary-container: #67645d;
+  
+  --color-tertiary: #070807;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #1f201e;
+  --color-on-tertiary-container: #878784;
+
+  --font-metropolis: 'metropolis', sans-serif;
+  --font-libre-franklin: 'Libre Franklin', sans-serif;
+
+  --spacing-margin-mobile: 20px;
+  --spacing-margin-desktop: 64px;
+  --spacing-gutter: 24px;
+  --spacing-container-max: 1440px;
+  --spacing-section-gap: 160px;
+  --spacing-unit: 8px;
+}
+
+/* Base style resets and scroll behavior */
+html {
+  scroll-behavior: smooth;
+  background-color: #f6f1e8; /* default to bone background */
+  color: #231f20; /* default to onyx text */
+}
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Cinematic Shimmer Animation */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.shimmer-text-light {
+  background: linear-gradient(to right, rgba(255,255,255,0.7) 20%, #ffffff 40%, #ffffff 60%, rgba(255,255,255,0.7) 80%);
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shimmer 6s linear infinite;
+}
+
+.shimmer-text-dark {
+  background: linear-gradient(to right, rgba(10,7,8,0.7) 20%, #0a0708 40%, #0a0708 60%, rgba(10,7,8,0.7) 80%);
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shimmer 6s linear infinite;
+}
+
+.cinematic-shimmer {
+  background: linear-gradient(90deg, #0a0708 0%, #7e7577 50%, #0a0708 100%);
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shimmer 5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Reveal-on-scroll Animations */
+.reveal-up {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-up.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Fade transitions for routing */
+.page-fade-enter {
+  opacity: 0;
+  transform: scale(0.99) translateY(4px);
+}
+.page-fade-enter-active {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1), transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Custom font loading approximations */
+@font-face {
+  font-family: 'metropolis';
+  src: url('https://fonts.cdnfonts.com/s/14358/Metropolis-Light.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'metropolis';
+  src: url('https://fonts.cdnfonts.com/s/14358/Metropolis-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'metropolis';
+  src: url('https://fonts.cdnfonts.com/s/14358/Metropolis-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'metropolis';
+  src: url('https://fonts.cdnfonts.com/s/14358/Metropolis-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+}
