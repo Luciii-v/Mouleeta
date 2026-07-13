@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+
+@font-face {
+  font-family: 'SyncopateCustom';
+  src: url('/fonts/Syncopate-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'SyncopateCustom';
+  src: url('/fonts/Syncopate-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --color-bone: #FDFBF7;
+  --color-bone-dark: #F5EFE7;
+  --color-onyx: #1A1A1A;
+  --color-graphite: #4A4647;
+  --color-outline: #7E7577;
+  
+  --font-metropolis: var(--font-metropolis), sans-serif;
+  --font-jost: var(--font-jost), sans-serif;
+  --font-syncopate: 'SyncopateCustom', sans-serif;
+  --font-orbitron: var(--font-orbitron), sans-serif;
+  --font-inter: var(--font-inter), sans-serif;
+  --font-editorial: var(--font-editorial), serif;
+}
+
+/* Custom Base Resets */
+html {
+  scroll-behavior: smooth;
+  background-color: #FDFBF7;
+  color: #1A1A1A;
+  font-family: var(--font-inter), sans-serif;
+}
+
+body {
+  background-color: #FDFBF7;
+  color: #1A1A1A;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Glassmorphism subtle overlay */
+.glass-overlay {
+  background: rgba(253, 251, 247, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Custom Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+  }
+  .scrollbar-hide {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+  }
+}
