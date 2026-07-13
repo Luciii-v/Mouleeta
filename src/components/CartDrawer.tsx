@@ -29,11 +29,6 @@ export default function CartDrawer({ upsellProducts = [] }: CartDrawerProps) {
     setIsProcessing(true);
 
     try {
-      // 1. Create a fresh Shopify cart session
-      const newCart = await createCart();
-      if (!newCart) throw new Error("Failed to create checkout session");
-
-      // 2. Map local cart items to Shopify line items
       const lines = cart.map(item => {
         if (item.variantId.includes('/Product/') && !item.variantId.includes('ProductVariant')) {
           throw new Error(`Corrupted Cart Item: "${item.title}". Please remove it from your bag and add it again.`);
@@ -44,29 +39,23 @@ export default function CartDrawer({ upsellProducts = [] }: CartDrawerProps) {
         };
       });
 
-      // 3. Add items to the Shopify cart
-      const cartWithItems = await addToCart(newCart.id, lines);
-      if (!cartWithItems) throw new Error("Failed to add items to checkout");
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lines })
+      });
 
-      // 4. Redirect to the official Shopify Checkout page securely
-      // Shopify may return the primary custom domain (e.g. mouleeta.com) for checkout URLs, 
-      // but since that domain points to a LiteSpeed server currently, we must force the 
-      // .myshopify.com domain to prevent a 404 error.
-      const checkoutUrlObj = new URL(newCart.checkoutUrl);
-      const checkoutDomain = process.env.NEXT_PUBLIC_SHOPIFY_CHECKOUT_DOMAIN || process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || 'kvd0hr-0x.myshopify.com';
-      checkoutUrlObj.hostname = checkoutDomain;
-      
-      // Shopify aggressively redirects .myshopify.com URLs back to the primary custom domain.
-      // We append ?_fd=0 to bypass this when using a .myshopify.com domain.
-      if (checkoutDomain.includes('myshopify.com')) {
-        checkoutUrlObj.searchParams.set('_fd', '0');
+      const data = await response.json();
+
+      if (!response.ok || !data.url) {
+        throw new Error(data.error || 'Failed to initialize checkout session');
       }
-      
-      window.location.href = checkoutUrlObj.toString();
 
+      window.location.href = data.url;
     } catch (error) {
       console.error('Checkout error:', error);
-      alert('Something went wrong initiating checkout. Please try again.');
+      const msg = error instanceof Error ? error.message : 'Something went wrong initiating checkout. Please try again.';
+      alert(msg);
       setIsProcessing(false);
     }
   };
