@@ -53,12 +53,14 @@ export default function CartDrawer({ upsellProducts = [] }: CartDrawerProps) {
       // but since that domain points to a LiteSpeed server currently, we must force the 
       // .myshopify.com domain to prevent a 404 error.
       const checkoutUrlObj = new URL(newCart.checkoutUrl);
-      const storeDomain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || 'kvd0hr-0x.myshopify.com';
-      checkoutUrlObj.hostname = storeDomain;
+      const checkoutDomain = process.env.NEXT_PUBLIC_SHOPIFY_CHECKOUT_DOMAIN || process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || 'kvd0hr-0x.myshopify.com';
+      checkoutUrlObj.hostname = checkoutDomain;
       
       // Shopify aggressively redirects .myshopify.com URLs back to the primary custom domain.
-      // We must append ?_fd=0 to bypass this and force it to stay on the secure Shopify domain.
-      checkoutUrlObj.searchParams.set('_fd', '0');
+      // We append ?_fd=0 to bypass this when using a .myshopify.com domain.
+      if (checkoutDomain.includes('myshopify.com')) {
+        checkoutUrlObj.searchParams.set('_fd', '0');
+      }
       
       window.location.href = checkoutUrlObj.toString();
 
