@@ -4,7 +4,7 @@ import Image from 'next/image';
 
 export default function MegaMenu() {
   return (
-    <div className="w-full bg-[#FDFBF7] border-b border-onyx/5 text-onyx shadow-sm transition-all duration-500 ease-in-out">
+    <div className="w-full bg-[#f6f1e8] border-b border-onyx/5 text-onyx shadow-sm transition-all duration-500 ease-in-out">
       <div className="max-w-[1440px] mx-auto px-6 md:px-16 py-12 grid grid-cols-1 md:grid-cols-5 gap-12">
         
         {/* Column 1: Dresses */}

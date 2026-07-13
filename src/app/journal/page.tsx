@@ -6,7 +6,7 @@ export const metadata = {
 
 export default function JournalPage() {
   return (
-    <div className="bg-[#FDFBF7]">
+    <div className="bg-[#f6f1e8]">
       {/* Full-height centered content */}
       <div className="min-h-[80vh] flex flex-col items-center justify-center px-6 text-center">
         {/* Overline */}

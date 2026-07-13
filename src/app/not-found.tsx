@@ -3,7 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-[#FDFBF7] flex flex-col items-center justify-center px-6 text-center">
+    <div className="min-h-screen bg-[#f6f1e8] flex flex-col items-center justify-center px-6 text-center">
       {/* Decorative number */}
       <p className="font-jost font-extralight text-[120px] md:text-[180px] leading-none tracking-[0.15em] text-[#1A1A1A]/5 select-none">
         404

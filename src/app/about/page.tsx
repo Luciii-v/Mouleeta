@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function AboutPage() {
   return (
-    <div className="bg-[#FDFBF7]">
+    <div className="bg-[#f6f1e8]">
       {/* Visual Header */}
       <div className="pt-32 pb-16 px-6 md:px-16 lg:px-24 max-w-3xl mx-auto text-center">
         <h1 className="font-jost font-light text-4xl md:text-5xl tracking-[0.2em] uppercase mb-8 text-[#1A1A1A]">

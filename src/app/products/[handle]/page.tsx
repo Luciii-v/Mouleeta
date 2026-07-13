@@ -75,7 +75,7 @@ export default async function ProductPage({ params }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-[#FDFBF7]">
+    <main className="min-h-screen bg-[#f6f1e8]">
       <ProductDetail product={product} allProducts={allProducts} />
     </main>
   );

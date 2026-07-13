@@ -17,9 +17,9 @@
 }
 
 @theme {
-  --color-bone: #FDFBF7;
-  --color-bone-dark: #F5EFE7;
-  --color-onyx: #1A1A1A;
+  --color-bone: #f6f1e8;
+  --color-bone-dark: #ebe4d8;
+  --color-onyx: #231f20;
   --color-graphite: #4A4647;
   --color-outline: #7E7577;
   
@@ -34,14 +34,14 @@
 /* Custom Base Resets */
 html {
   scroll-behavior: smooth;
-  background-color: #FDFBF7;
-  color: #1A1A1A;
+  background-color: #f6f1e8;
+  color: #231f20;
   font-family: var(--font-inter), sans-serif;
 }
 
 body {
-  background-color: #FDFBF7;
-  color: #1A1A1A;
+  background-color: #f6f1e8;
+  color: #231f20;
   min-height: 100vh;
   display: flex;
   flex-direction: column;

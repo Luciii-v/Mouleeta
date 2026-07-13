@@ -61,7 +61,7 @@ export default function Header() {
       className={`fixed top-0 z-40 w-full transition-colors duration-500 ease-out select-none ${
         isTransparent 
           ? 'bg-transparent border-b border-transparent py-2' 
-          : 'bg-[#FDFBF7]/95 backdrop-blur-md border-b border-onyx/10 py-0 shadow-[0_4px_30px_rgba(0,0,0,0.02)]'
+          : 'bg-[#f6f1e8]/95 backdrop-blur-md border-b border-onyx/10 py-0 shadow-[0_4px_30px_rgba(0,0,0,0.02)]'
       }`}
     >
       {/* Dark Overlay for Mega Menu */}

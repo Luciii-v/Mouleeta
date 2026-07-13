@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function Loading() {
   return (
-    <div className="w-full h-[60vh] flex flex-col items-center justify-center bg-[#FDFBF7]">
+    <div className="w-full h-[60vh] flex flex-col items-center justify-center bg-[#f6f1e8]">
       <div className="flex flex-col items-center gap-6">
         {/* Subtle Pulse Logo or Spinner */}
         <div className="w-12 h-12 border border-[#1A1A1A]/10 rounded-full flex items-center justify-center relative overflow-hidden">

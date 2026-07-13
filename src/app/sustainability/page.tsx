@@ -6,7 +6,7 @@ export const metadata = {
 
 export default function SustainabilityPage() {
   return (
-    <div className="bg-[#FDFBF7]">
+    <div className="bg-[#f6f1e8]">
       {/* Hero Header */}
       <div className="pt-32 pb-16 px-6 md:px-16 lg:px-24 max-w-3xl mx-auto text-center">
         <p className="font-jost text-xs tracking-[0.3em] uppercase mb-6 text-[#1A1A1A]/40">
