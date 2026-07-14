@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Search, User, Heart, Truck, Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -8,6 +8,7 @@ import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-
 import { useSession, signOut } from "next-auth/react";
 import { usePathname } from 'next/navigation';
 import ShopDrawer from './ShopDrawer';
+import MegaMenu from './MegaMenu';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
 import SearchModal from './SearchModal';
@@ -20,6 +21,22 @@ export default function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isHoveringShop, setIsHoveringShop] = useState(false);
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleShopMouseEnter = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    setIsHoveringShop(true);
+  };
+
+  const handleShopMouseLeave = () => {
+    closeTimeoutRef.current = setTimeout(() => {
+      setIsHoveringShop(false);
+    }, 150);
+  };
   const pathname = usePathname();
 
   React.useEffect(() => {
@@ -50,7 +67,7 @@ export default function Header() {
 
   const isHome = pathname === '/';
   // It's only transparent if we are at the top of the home page AND not hovering the shop menu or drawer
-  const isTransparent = isHome && !isScrolled && !isMenuOpen;
+  const isTransparent = isHome && !isScrolled && !isMenuOpen && !isHoveringShop;
 
   // Determine colors based on transparency
   const textColorClass = isTransparent ? "text-white/80 hover:text-white" : "text-graphite hover:text-onyx";
@@ -69,14 +86,19 @@ export default function Header() {
 
         {/* Left: Navigation links (w-1/3) */}
         <nav className="w-1/3 flex items-center justify-start gap-8 hidden md:flex">
-          {/* Shop with Left-Side Drawer Trigger */}
-          <div>
-            <button
-              onClick={() => setIsMenuOpen(true)}
-              className={`font-inter text-[11px] font-semibold uppercase tracking-[0.18em] transition-colors cursor-pointer py-6 ${textColorClass}`}
+          {/* Shop with Full-Width MegaMenu Hover Trigger */}
+          <div
+            onMouseEnter={handleShopMouseEnter}
+            onMouseLeave={handleShopMouseLeave}
+            className="py-6 -my-6 flex items-center"
+          >
+            <Link
+              href="/shop"
+              onClick={() => setIsHoveringShop(false)}
+              className={`font-inter text-[11px] font-semibold uppercase tracking-[0.18em] transition-colors cursor-pointer ${textColorClass}`}
             >
               Shop
-            </button>
+            </Link>
           </div>
 
           <Link
@@ -379,6 +401,12 @@ export default function Header() {
 
       <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
       <ShopDrawer isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
+      <MegaMenu
+        isOpen={isHoveringShop}
+        onMouseEnter={handleShopMouseEnter}
+        onMouseLeave={handleShopMouseLeave}
+        onClose={() => setIsHoveringShop(false)}
+      />
     </header>
   );
 }
