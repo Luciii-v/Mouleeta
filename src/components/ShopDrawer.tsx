@@ -237,9 +237,8 @@ export default function ShopDrawer({
         </div>
 
         {/* Drawer Footer */}
-        <div className="px-8 py-6 border-t border-[#231f20]/10 shrink-0 bg-[#f6f1e8]/80 backdrop-blur-xs flex items-center justify-between text-[10px] text-[#231f20]/60 uppercase tracking-widest font-jost">
+        <div className="px-8 py-6 border-t border-[#231f20]/10 shrink-0 bg-[#f6f1e8]/80 backdrop-blur-xs flex items-center justify-start text-[10px] text-[#231f20]/60 uppercase tracking-widest font-jost">
           <span>Crafted Consciously</span>
-          <span>100% Linen</span>
         </div>
       </aside>
     </div>,
