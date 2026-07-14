@@ -101,19 +101,19 @@ export default function Header() {
           </div>
 
           <Link
-            href="#collection"
+            href="/#collection"
             className={`font-inter text-[11px] font-semibold uppercase tracking-[0.18em] transition-colors py-6 ${textColorClass}`}
           >
             Collection
           </Link>
           <Link
-            href="#commitment"
+            href="/about"
             className={`font-inter text-[11px] font-semibold uppercase tracking-[0.18em] transition-colors py-6 ${textColorClass}`}
           >
             About
           </Link>
           <Link
-            href="#philosophy"
+            href="/sustainability"
             className={`font-inter text-[11px] font-semibold uppercase tracking-[0.18em] transition-colors py-6 ${textColorClass}`}
           >
             Sustainability
@@ -345,6 +345,7 @@ export default function Header() {
                 {/* About & Philosophy */}
                 <div className="flex flex-col gap-2">
                   <span className="text-[10px] font-bold tracking-[0.15em] uppercase text-stone-400">Our World</span>
+                  <Link href="/about" onClick={() => setIsMobileMenuOpen(false)} className="font-inter text-xs text-stone-600 hover:text-stone-900">About Us</Link>
                   <Link href="/philosophy" onClick={() => setIsMobileMenuOpen(false)} className="font-inter text-xs text-stone-600 hover:text-stone-900">Our Philosophy</Link>
                   <Link href="/sustainability" onClick={() => setIsMobileMenuOpen(false)} className="font-inter text-xs text-stone-600 hover:text-stone-900">Sustainability & Care</Link>
                   <Link href="/journal" onClick={() => setIsMobileMenuOpen(false)} className="font-inter text-xs text-stone-600 hover:text-stone-900">The Journal</Link>
