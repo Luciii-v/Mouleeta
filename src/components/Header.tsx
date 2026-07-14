@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
 import { useSession, signOut } from "next-auth/react";
 import { usePathname } from 'next/navigation';
-import MegaMenu from './MegaMenu';
+import ShopDrawer from './ShopDrawer';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
 import SearchModal from './SearchModal';
@@ -19,6 +19,7 @@ export default function Header() {
   const [mounted, setMounted] = React.useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
 
   React.useEffect(() => {
@@ -39,7 +40,6 @@ export default function Header() {
 
   const { scrollY } = useScroll();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isHoveringShop, setIsHoveringShop] = useState(false);
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     setIsScrolled(latest > 50);
@@ -49,8 +49,8 @@ export default function Header() {
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
 
   const isHome = pathname === '/';
-  // It's only transparent if we are at the top of the home page AND not hovering the shop menu
-  const isTransparent = isHome && !isScrolled && !isHoveringShop;
+  // It's only transparent if we are at the top of the home page AND not hovering the shop menu or drawer
+  const isTransparent = isHome && !isScrolled && !isMenuOpen;
 
   // Determine colors based on transparency
   const textColorClass = isTransparent ? "text-white/80 hover:text-white" : "text-graphite hover:text-onyx";
@@ -64,36 +64,19 @@ export default function Header() {
           : 'bg-[#f6f1e8]/95 backdrop-blur-md border-b border-onyx/10 py-0 shadow-[0_4px_30px_rgba(0,0,0,0.02)]'
       }`}
     >
-      {/* Dark Overlay for Mega Menu */}
-      <AnimatePresence>
-        {isHoveringShop && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 h-screen w-screen bg-black/20 backdrop-blur-sm -z-10 pointer-events-none"
-          />
-        )}
-      </AnimatePresence>
 
       <div className="max-w-[1440px] mx-auto px-6 md:px-16 flex items-center justify-between">
 
         {/* Left: Navigation links (w-1/3) */}
         <nav className="w-1/3 flex items-center justify-start gap-8 hidden md:flex">
-          {/* Shop with MegaMenu Trigger */}
-          <div 
-            className="group static"
-            onMouseEnter={() => setIsHoveringShop(true)}
-            onMouseLeave={() => setIsHoveringShop(false)}
-          >
-            <button className={`font-inter text-[11px] font-semibold uppercase tracking-[0.18em] transition-colors cursor-pointer py-6 ${textColorClass}`}>
+          {/* Shop with Left-Side Drawer Trigger */}
+          <div>
+            <button
+              onClick={() => setIsMenuOpen(true)}
+              className={`font-inter text-[11px] font-semibold uppercase tracking-[0.18em] transition-colors cursor-pointer py-6 ${textColorClass}`}
+            >
               Shop
             </button>
-            {/* The Dropdown Container */}
-            <div className="absolute left-0 w-full top-full hidden group-hover:block z-50 animate-fadeIn shadow-xl border-t border-onyx/5">
-              <MegaMenu />
-            </div>
           </div>
 
           <Link
@@ -395,6 +378,7 @@ export default function Header() {
       </AnimatePresence>
 
       <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+      <ShopDrawer isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
     </header>
   );
 }
