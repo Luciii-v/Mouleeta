@@ -8,9 +8,16 @@ import { X } from 'lucide-react';
 interface ShopDrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
-export default function ShopDrawer({ isOpen, onClose }: ShopDrawerProps) {
+export default function ShopDrawer({
+  isOpen,
+  onClose,
+  onMouseEnter,
+  onMouseLeave,
+}: ShopDrawerProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -48,7 +55,7 @@ export default function ShopDrawer({ isOpen, onClose }: ShopDrawerProps) {
         isOpen ? 'pointer-events-auto' : 'pointer-events-none'
       }`}
     >
-      {/* 2. Fixed, full-screen dark overlay */}
+      {/* Dark, semi-transparent backdrop overlay covering the rest of the screen */}
       <div
         className={`fixed inset-0 bg-black/40 z-40 transition-opacity duration-500 ease-in-out ${
           isOpen ? 'opacity-100' : 'opacity-0'
@@ -57,13 +64,15 @@ export default function ShopDrawer({ isOpen, onClose }: ShopDrawerProps) {
         aria-label="Close menu overlay"
       />
 
-      {/* 3. The Drawer UI fixed to left, ~85vw max-w-md, high z-index */}
+      {/* Fixed left-side panel with slide-in animation */}
       <aside
-        className={`fixed left-0 top-0 h-full w-[85vw] max-w-md bg-[#f6f1e8] text-[#231f20] z-50 shadow-2xl flex flex-col overflow-hidden transition-transform duration-500 ease-in-out ${
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        className={`fixed left-0 top-0 h-full w-[85vw] max-w-sm bg-[#f6f1e8] text-[#231f20] z-50 shadow-2xl flex flex-col overflow-y-auto transition-transform duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* Drawer Header with Brand Title and Close Button */}
+        {/* Drawer Header with Brand Title & Close Button */}
         <div className="flex items-center justify-between px-8 py-6 border-b border-[#231f20]/10 shrink-0">
           <Link
             href="/"
@@ -72,167 +81,153 @@ export default function ShopDrawer({ isOpen, onClose }: ShopDrawerProps) {
           >
             MOULEETA
           </Link>
-
-          {/* 5. Close Button: Clean 'X' SVG icon at top right */}
           <button
             onClick={onClose}
-            className="p-2 text-[#231f20]/70 hover:text-[#231f20] transition-colors cursor-pointer -mr-2"
-            aria-label="Close navigation drawer"
+            className="p-1 text-[#231f20] hover:opacity-60 transition-opacity cursor-pointer"
+            aria-label="Close menu"
           >
-            <X size={22} strokeWidth={1.5} />
+            <X size={20} strokeWidth={1.5} />
           </button>
         </div>
 
-        {/* Drawer Content: Stacked categories vertically */}
-        <div className="flex-1 overflow-y-auto px-8 py-8 flex flex-col gap-10 no-scrollbar">
+        {/* Vertically Populated Content Map */}
+        <div className="flex-1 px-8 py-8 space-y-10">
           
-          {/* Category 1: DRESSES */}
-          <div className="flex flex-col">
-            <span className="font-jost text-[11px] font-semibold tracking-[0.2em] uppercase text-[#231f20]/60 mb-3.5 block">
-              DRESSES
-            </span>
-            <div className="flex flex-col gap-2.5">
+          {/* Section 1: DRESSES */}
+          <div>
+            <h3 className="font-jost text-xs font-semibold uppercase tracking-[0.2em] text-[#231f20]/70 mb-3 block">
+              Dresses
+            </h3>
+            <div className="flex flex-col space-y-2">
               <Link
                 href="/products/collar-dress"
                 onClick={onClose}
-                className="font-inter text-sm font-light text-[#231f20] hover:text-black hover:translate-x-1.5 transition-all duration-300"
+                className="font-inter text-sm font-light text-[#231f20] hover:text-black hover:translate-x-1.5 transition-all duration-300 w-fit"
               >
                 Collar Dress
               </Link>
               <Link
                 href="/products/backless-dress"
                 onClick={onClose}
-                className="font-inter text-sm font-light text-[#231f20] hover:text-black hover:translate-x-1.5 transition-all duration-300"
+                className="font-inter text-sm font-light text-[#231f20] hover:text-black hover:translate-x-1.5 transition-all duration-300 w-fit"
               >
                 Backless Dress
               </Link>
               <Link
                 href="/products/slit-dress"
                 onClick={onClose}
-                className="font-inter text-sm font-light text-[#231f20] hover:text-black hover:translate-x-1.5 transition-all duration-300"
+                className="font-inter text-sm font-light text-[#231f20] hover:text-black hover:translate-x-1.5 transition-all duration-300 w-fit"
               >
                 Slit Dress
               </Link>
               <Link
                 href="/products/short-dress"
                 onClick={onClose}
-                className="font-inter text-sm font-light text-[#231f20] hover:text-black hover:translate-x-1.5 transition-all duration-300"
+                className="font-inter text-sm font-light text-[#231f20] hover:text-black hover:translate-x-1.5 transition-all duration-300 w-fit"
               >
                 Short Dress
               </Link>
-              
-              {/* Underlined link */}
-              <div className="pt-1.5">
-                <Link
-                  href="/shop?category=DRESSES"
-                  onClick={onClose}
-                  className="inline-block border-b border-[#231f20]/40 pb-0.5 font-inter text-[11px] font-semibold uppercase tracking-[0.15em] text-[#231f20] hover:border-[#231f20] hover:opacity-75 transition-all"
-                >
-                  SHOP ALL DRESSES
-                </Link>
-              </div>
+              <Link
+                href="/collections/dresses"
+                onClick={onClose}
+                className="inline-block border-b border-[#231f20]/40 pb-0.5 font-inter text-[11px] font-semibold uppercase tracking-[0.15em] text-[#231f20] hover:border-[#231f20] hover:opacity-75 transition-all mt-2.5 w-fit"
+              >
+                Shop All Dresses
+              </Link>
             </div>
           </div>
 
-          {/* Category 2: SETS & SPECIAL EDITS */}
-          <div className="flex flex-col">
-            <span className="font-jost text-[11px] font-semibold tracking-[0.2em] uppercase text-[#231f20]/60 mb-3.5 block">
-              SETS & SPECIAL EDITS
-            </span>
-            <div className="flex flex-col gap-2.5">
+          {/* Section 2: SETS & SPECIAL EDITS */}
+          <div>
+            <h3 className="font-jost text-xs font-semibold uppercase tracking-[0.2em] text-[#231f20]/70 mb-3 block">
+              Sets & Special Edits
+            </h3>
+            <div className="flex flex-col space-y-2">
               <Link
                 href="/products/co-ord-sets"
                 onClick={onClose}
-                className="font-inter text-sm font-light text-[#231f20] hover:text-black hover:translate-x-1.5 transition-all duration-300"
+                className="font-inter text-sm font-light text-[#231f20] hover:text-black hover:translate-x-1.5 transition-all duration-300 w-fit"
               >
                 Co-ord Sets
               </Link>
               <Link
                 href="/products/tie-n-dye"
                 onClick={onClose}
-                className="font-inter text-sm font-light text-[#231f20] hover:text-black hover:translate-x-1.5 transition-all duration-300"
+                className="font-inter text-sm font-light text-[#231f20] hover:text-black hover:translate-x-1.5 transition-all duration-300 w-fit"
               >
                 Tie n Dye
               </Link>
-
-              {/* Underlined links exactly as styled */}
-              <div className="pt-1.5 flex flex-col gap-3.5 items-start">
-                <Link
-                  href="/shop?category=CO-ORDS"
-                  onClick={onClose}
-                  className="inline-block border-b border-[#231f20]/40 pb-0.5 font-inter text-[11px] font-semibold uppercase tracking-[0.15em] text-[#231f20] hover:border-[#231f20] hover:opacity-75 transition-all"
-                >
-                  SHOP CO-ORD SETS
-                </Link>
-                <Link
-                  href="/shop?category=TIE-N-DYE"
-                  onClick={onClose}
-                  className="inline-block border-b border-[#231f20]/40 pb-0.5 font-inter text-[11px] font-semibold uppercase tracking-[0.15em] text-[#231f20] hover:border-[#231f20] hover:opacity-75 transition-all"
-                >
-                  SHOP TIE & DYE
-                </Link>
-              </div>
+              <Link
+                href="/collections/co-ord-sets"
+                onClick={onClose}
+                className="inline-block border-b border-[#231f20]/40 pb-0.5 font-inter text-[11px] font-semibold uppercase tracking-[0.15em] text-[#231f20] hover:border-[#231f20] hover:opacity-75 transition-all mt-2.5 w-fit"
+              >
+                Shop Co-ord Sets
+              </Link>
+              <Link
+                href="/collections/tie-n-dye"
+                onClick={onClose}
+                className="inline-block border-b border-[#231f20]/40 pb-0.5 font-inter text-[11px] font-semibold uppercase tracking-[0.15em] text-[#231f20] hover:border-[#231f20] hover:opacity-75 transition-all mt-2 w-fit"
+              >
+                Shop Tie & Dye
+              </Link>
             </div>
           </div>
 
-          {/* Category 3: ACCESSORIES */}
-          <div className="flex flex-col">
-            <span className="font-jost text-[11px] font-semibold tracking-[0.2em] uppercase text-[#231f20]/60 mb-3.5 block">
-              ACCESSORIES
-            </span>
-            <div className="flex flex-col gap-2.5">
+          {/* Section 3: ACCESSORIES */}
+          <div>
+            <h3 className="font-jost text-xs font-semibold uppercase tracking-[0.2em] text-[#231f20]/70 mb-3 block">
+              Accessories
+            </h3>
+            <div className="flex flex-col space-y-2">
               <Link
                 href="/products/blue-bag"
                 onClick={onClose}
-                className="font-inter text-sm font-light text-[#231f20] hover:text-black hover:translate-x-1.5 transition-all duration-300"
+                className="font-inter text-sm font-light text-[#231f20] hover:text-black hover:translate-x-1.5 transition-all duration-300 w-fit"
               >
                 Blue Bag
               </Link>
               <Link
                 href="/products/pink-bag"
                 onClick={onClose}
-                className="font-inter text-sm font-light text-[#231f20] hover:text-black hover:translate-x-1.5 transition-all duration-300"
+                className="font-inter text-sm font-light text-[#231f20] hover:text-black hover:translate-x-1.5 transition-all duration-300 w-fit"
               >
                 Pink Bag
               </Link>
-
-              {/* Underlined link */}
-              <div className="pt-1.5">
-                <Link
-                  href="/shop?category=ACCESSORIES"
-                  onClick={onClose}
-                  className="inline-block border-b border-[#231f20]/40 pb-0.5 font-inter text-[11px] font-semibold uppercase tracking-[0.15em] text-[#231f20] hover:border-[#231f20] hover:opacity-75 transition-all"
-                >
-                  SHOP ACCESSORIES
-                </Link>
-              </div>
+              <Link
+                href="/collections/accessories"
+                onClick={onClose}
+                className="inline-block border-b border-[#231f20]/40 pb-0.5 font-inter text-[11px] font-semibold uppercase tracking-[0.15em] text-[#231f20] hover:border-[#231f20] hover:opacity-75 transition-all mt-2.5 w-fit"
+              >
+                Shop Accessories
+              </Link>
             </div>
           </div>
 
-          {/* Category 4: OUR WORLD */}
-          <div className="flex flex-col pb-8">
-            <span className="font-jost text-[11px] font-semibold tracking-[0.2em] uppercase text-[#231f20]/60 mb-3.5 block">
-              OUR WORLD
-            </span>
-            <div className="flex flex-col gap-2.5">
+          {/* Section 4: OUR WORLD */}
+          <div>
+            <h3 className="font-jost text-xs font-semibold uppercase tracking-[0.2em] text-[#231f20]/70 mb-3 block">
+              Our World
+            </h3>
+            <div className="flex flex-col space-y-2">
               <Link
                 href="/philosophy"
                 onClick={onClose}
-                className="font-inter text-sm font-light text-[#231f20] hover:text-black hover:translate-x-1.5 transition-all duration-300"
+                className="font-inter text-sm font-light text-[#231f20] hover:text-black hover:translate-x-1.5 transition-all duration-300 w-fit"
               >
                 Our Philosophy
               </Link>
               <Link
                 href="/sustainability"
                 onClick={onClose}
-                className="font-inter text-sm font-light text-[#231f20] hover:text-black hover:translate-x-1.5 transition-all duration-300"
+                className="font-inter text-sm font-light text-[#231f20] hover:text-black hover:translate-x-1.5 transition-all duration-300 w-fit"
               >
                 Sustainability & Care
               </Link>
               <Link
                 href="/journal"
                 onClick={onClose}
-                className="font-inter text-sm font-light text-[#231f20] hover:text-black hover:translate-x-1.5 transition-all duration-300"
+                className="font-inter text-sm font-light text-[#231f20] hover:text-black hover:translate-x-1.5 transition-all duration-300 w-fit"
               >
                 The Journal
               </Link>
@@ -241,7 +236,7 @@ export default function ShopDrawer({ isOpen, onClose }: ShopDrawerProps) {
 
         </div>
 
-        {/* Optional Drawer Footer */}
+        {/* Drawer Footer */}
         <div className="px-8 py-6 border-t border-[#231f20]/10 shrink-0 bg-[#f6f1e8]/80 backdrop-blur-xs flex items-center justify-between text-[10px] text-[#231f20]/60 uppercase tracking-widest font-jost">
           <span>Crafted Consciously</span>
           <span>100% Linen</span>

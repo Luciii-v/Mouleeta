@@ -8,7 +8,6 @@ import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-
 import { useSession, signOut } from "next-auth/react";
 import { usePathname } from 'next/navigation';
 import ShopDrawer from './ShopDrawer';
-import MegaMenu from './MegaMenu';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
 import SearchModal from './SearchModal';
@@ -400,12 +399,14 @@ export default function Header() {
       </AnimatePresence>
 
       <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
-      <ShopDrawer isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
-      <MegaMenu
-        isOpen={isHoveringShop}
+      <ShopDrawer
+        isOpen={isHoveringShop || isMenuOpen}
+        onClose={() => {
+          setIsHoveringShop(false);
+          setIsMenuOpen(false);
+        }}
         onMouseEnter={handleShopMouseEnter}
         onMouseLeave={handleShopMouseLeave}
-        onClose={() => setIsHoveringShop(false)}
       />
     </header>
   );
