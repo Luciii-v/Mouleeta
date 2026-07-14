@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { X } from 'lucide-react';
 
@@ -10,6 +11,12 @@ interface ShopDrawerProps {
 }
 
 export default function ShopDrawer({ isOpen, onClose }: ShopDrawerProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Prevent body scroll when drawer is open
   useEffect(() => {
     if (isOpen) {
@@ -33,9 +40,11 @@ export default function ShopDrawer({ isOpen, onClose }: ShopDrawerProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  return (
+  if (!mounted || typeof window === 'undefined') return null;
+
+  return createPortal(
     <div
-      className={`fixed inset-0 z-50 transition-all duration-500 ${
+      className={`fixed inset-0 z-[150] transition-all duration-500 ${
         isOpen ? 'pointer-events-auto' : 'pointer-events-none'
       }`}
     >
@@ -238,6 +247,7 @@ export default function ShopDrawer({ isOpen, onClose }: ShopDrawerProps) {
           <span>100% Linen</span>
         </div>
       </aside>
-    </div>
+    </div>,
+    document.body
   );
 }
