@@ -34,6 +34,8 @@ export default function AddressesPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAddr, setEditingAddr] = useState(null);
+  const [isLocating, setIsLocating] = useState(false);
+  const [pinStatus, setPinStatus] = useState("");
   const [newAddr, setNewAddr] = useState({
     name: "VIVAAN VEER",
     company: "",
@@ -47,6 +49,84 @@ export default function AddressesPage() {
     isDefault: false,
   });
 
+  // Auto-capture City & State from Indian/International PIN code
+  const handlePinChange = async (e) => {
+    const pin = e.target.value;
+    setNewAddr((prev) => ({ ...prev, zip: pin }));
+
+    if (/^\d{6}$/.test(pin.trim())) {
+      setIsLocating(true);
+      setPinStatus("Auto-capturing City & State from PIN...");
+      try {
+        const res = await fetch(`https://api.postalpincode.in/pincode/${pin.trim()}`);
+        const data = await res.json();
+        if (data && data[0] && data[0].Status === "Success" && data[0].PostOffice && data[0].PostOffice.length > 0) {
+          const po = data[0].PostOffice[0];
+          const detectedCity = po.District || po.Block || po.Name;
+          const detectedState = po.State;
+          setNewAddr((prev) => ({
+            ...prev,
+            city: detectedCity || prev.city,
+            province: detectedState || prev.province,
+          }));
+          setPinStatus(`✨ Auto-captured: ${detectedCity}, ${detectedState}`);
+        } else {
+          setPinStatus("PIN Code not found. Please verify or enter City & State manually.");
+        }
+      } catch (err) {
+        setPinStatus("Could not fetch PIN details.");
+      } finally {
+        setIsLocating(false);
+      }
+    } else {
+      if (pinStatus) setPinStatus("");
+    }
+  };
+
+  // Google Maps GPS Geolocation Auto-Capture
+  const handleDetectLocation = () => {
+    if (!navigator.geolocation) {
+      setPinStatus("Geolocation is not supported by your browser.");
+      return;
+    }
+    setIsLocating(true);
+    setPinStatus("Locating via GPS coordinates like Google Maps...");
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+          );
+          const data = await res.json();
+          if (data && data.address) {
+            const addr = data.address;
+            const detectedCity = addr.city || addr.town || addr.district || addr.county || "";
+            const detectedState = addr.state || "";
+            const detectedZip = addr.postcode || "";
+            const detectedRoad = addr.road || addr.suburb || "";
+            setNewAddr((prev) => ({
+              ...prev,
+              city: detectedCity || prev.city,
+              province: detectedState || prev.province,
+              zip: detectedZip || prev.zip,
+              address1: prev.address1 || detectedRoad,
+            }));
+            setPinStatus(`✨ Auto-captured location: ${detectedCity}, ${detectedState}`);
+          }
+        } catch (err) {
+          setPinStatus("Could not reverse-geocode coordinates.");
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      (err) => {
+        setIsLocating(false);
+        setPinStatus("Location permission denied or unavailable.");
+      }
+    );
+  };
+
   const handleSetDefault = (id) => {
     setAddresses((prev) =>
       prev.map((a) => ({ ...a, isDefault: a.id === id }))
@@ -59,12 +139,14 @@ export default function AddressesPage() {
 
   const handleOpenEdit = (addr) => {
     setEditingAddr(addr);
+    setPinStatus("");
     setNewAddr(addr);
     setIsModalOpen(true);
   };
 
   const handleOpenAdd = () => {
     setEditingAddr(null);
+    setPinStatus("");
     setNewAddr({
       name: "VIVAAN VEER",
       company: "",
@@ -207,13 +289,14 @@ export default function AddressesPage() {
 
       {/* Add / Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-          <div className="bg-white max-w-lg w-full p-6 sm:p-8 rounded-sm shadow-xl space-y-6 animate-fadeIn max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-3 sm:p-4">
+          <div className="bg-white max-w-xl w-full p-5 sm:p-8 rounded-sm shadow-xl space-y-6 animate-fadeIn max-h-[90vh] overflow-y-auto border border-gray-100">
             <div className="flex justify-between items-center border-b border-gray-100 pb-4">
               <h3 className="text-lg font-light uppercase tracking-widest text-gray-900">
-                {editingAddr ? "Edit Address" : "New Address"}
+                {editingAddr ? "Edit Address" : "New Shipping Address"}
               </h3>
               <button
+                type="button"
                 onClick={() => setIsModalOpen(false)}
                 className="text-gray-400 hover:text-black text-lg p-1 cursor-pointer"
               >
@@ -221,90 +304,139 @@ export default function AddressesPage() {
               </button>
             </div>
 
+            {/* Google Maps Location Assist Bar */}
+            <div className="bg-stone-50 border border-stone-200 p-3.5 sm:p-4 rounded-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-3 w-3 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                </span>
+                <div className="text-xs">
+                  <p className="font-medium text-stone-900">Google Maps Location Assist</p>
+                  <p className="text-[11px] text-stone-500">Auto-capture City & State via PIN or GPS</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleDetectLocation}
+                disabled={isLocating}
+                className="w-full sm:w-auto px-4 py-2 bg-black hover:bg-stone-800 text-white text-[11px] font-medium uppercase tracking-wider flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50 shadow-xs"
+              >
+                {isLocating ? "Locating..." : "📍 Detect Current Location"}
+              </button>
+            </div>
+
+            {pinStatus && (
+              <div className="text-xs px-3.5 py-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 font-medium rounded-sm flex items-center justify-between">
+                <span>{pinStatus}</span>
+                <button type="button" onClick={() => setPinStatus("")} className="text-emerald-600 hover:text-emerald-900 ml-2">✕</button>
+              </div>
+            )}
+
             <form onSubmit={handleSaveModal} className="space-y-4">
               <div>
-                <label className="block text-xs uppercase tracking-wider text-gray-600 mb-1">Full Name</label>
+                <label className="block text-xs uppercase tracking-wider text-gray-600 mb-1">Full Name *</label>
                 <input
                   type="text"
                   required
                   value={newAddr.name}
                   onChange={(e) => setNewAddr({ ...newAddr, name: e.target.value })}
-                  className="w-full border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-black"
+                  className="w-full border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:border-black transition-colors"
                 />
               </div>
 
+              {/* Building / Apartment Name Required */}
               <div>
-                <label className="block text-xs uppercase tracking-wider text-gray-600 mb-1">Company / Building (Optional)</label>
-                <input
-                  type="text"
-                  value={newAddr.company}
-                  onChange={(e) => setNewAddr({ ...newAddr, company: e.target.value })}
-                  className="w-full border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-black"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-gray-600 mb-1">Address Line 1</label>
+                <label className="block text-xs uppercase tracking-wider text-stone-900 font-semibold mb-1">
+                  Building / Apartment / Flat Name <span className="text-red-600">*</span>
+                </label>
                 <input
                   type="text"
                   required
-                  value={newAddr.address1}
-                  onChange={(e) => setNewAddr({ ...newAddr, address1: e.target.value })}
-                  className="w-full border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-black"
+                  placeholder="e.g. French Apartment, Flat 603, Luxury Heights"
+                  value={newAddr.company}
+                  onChange={(e) => setNewAddr({ ...newAddr, company: e.target.value })}
+                  className="w-full border border-stone-400 bg-stone-50/50 px-3 py-2.5 text-sm focus:outline-none focus:border-black focus:bg-white transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs uppercase tracking-wider text-gray-600 mb-1">Address Line 2 (Optional)</label>
+                <label className="block text-xs uppercase tracking-wider text-gray-600 mb-1">Address Line 1 (Street / Area) *</label>
                 <input
                   type="text"
-                  value={newAddr.address2}
-                  onChange={(e) => setNewAddr({ ...newAddr, address2: e.target.value })}
-                  className="w-full border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-black"
+                  required
+                  placeholder="e.g. Pali Hill Road, Bandra West"
+                  value={newAddr.address1}
+                  onChange={(e) => setNewAddr({ ...newAddr, address1: e.target.value })}
+                  className="w-full border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:border-black transition-colors"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs uppercase tracking-wider text-gray-600 mb-1">Address Line 2 (Landmark / Sector - Optional)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Near Town Central Mall"
+                  value={newAddr.address2}
+                  onChange={(e) => setNewAddr({ ...newAddr, address2: e.target.value })}
+                  className="w-full border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:border-black transition-colors"
+                />
+              </div>
+
+              {/* Postal Code & Phone - PIN input triggers City/State capture */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs uppercase tracking-wider text-gray-600 mb-1">City</label>
+                  <label className="block text-xs uppercase tracking-wider text-stone-900 font-semibold mb-1">
+                    Postal Code / PIN Code <span className="text-red-600">*</span>
+                  </label>
                   <input
                     type="text"
                     required
-                    value={newAddr.city}
-                    onChange={(e) => setNewAddr({ ...newAddr, city: e.target.value })}
-                    className="w-full border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-black"
+                    placeholder="e.g. 400050 (Auto-fills City & State)"
+                    value={newAddr.zip}
+                    onChange={handlePinChange}
+                    className="w-full border border-stone-400 bg-stone-50/50 px-3 py-2.5 text-sm font-medium focus:outline-none focus:border-black focus:bg-white transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs uppercase tracking-wider text-gray-600 mb-1">State / Province</label>
+                  <label className="block text-xs uppercase tracking-wider text-gray-600 mb-1">Phone Number *</label>
                   <input
-                    type="text"
+                    type="tel"
                     required
-                    value={newAddr.province}
-                    onChange={(e) => setNewAddr({ ...newAddr, province: e.target.value })}
-                    className="w-full border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-black"
+                    placeholder="+91 98200 12345"
+                    value={newAddr.phone}
+                    onChange={(e) => setNewAddr({ ...newAddr, phone: e.target.value })}
+                    className="w-full border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:border-black transition-colors"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              {/* City & State Auto-captured Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                 <div>
-                  <label className="block text-xs uppercase tracking-wider text-gray-600 mb-1">Postal Code / ZIP</label>
+                  <label className="block text-xs uppercase tracking-wider text-gray-600 mb-1">
+                    City <span className="text-[10px] text-emerald-700 font-normal">(Auto-captured)</span> *
+                  </label>
                   <input
                     type="text"
                     required
-                    value={newAddr.zip}
-                    onChange={(e) => setNewAddr({ ...newAddr, zip: e.target.value })}
-                    className="w-full border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-black"
+                    placeholder="Auto-captured from PIN / GPS"
+                    value={newAddr.city}
+                    onChange={(e) => setNewAddr({ ...newAddr, city: e.target.value })}
+                    className="w-full border border-gray-300 bg-stone-50/80 px-3 py-2.5 text-sm font-medium focus:outline-none focus:border-black focus:bg-white transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs uppercase tracking-wider text-gray-600 mb-1">Phone</label>
+                  <label className="block text-xs uppercase tracking-wider text-gray-600 mb-1">
+                    State / Province <span className="text-[10px] text-emerald-700 font-normal">(Auto-captured)</span> *
+                  </label>
                   <input
-                    type="tel"
-                    value={newAddr.phone}
-                    onChange={(e) => setNewAddr({ ...newAddr, phone: e.target.value })}
-                    className="w-full border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-black"
+                    type="text"
+                    required
+                    placeholder="Auto-captured from PIN / GPS"
+                    value={newAddr.province}
+                    onChange={(e) => setNewAddr({ ...newAddr, province: e.target.value })}
+                    className="w-full border border-gray-300 bg-stone-50/80 px-3 py-2.5 text-sm font-medium focus:outline-none focus:border-black focus:bg-white transition-colors"
                   />
                 </div>
               </div>
@@ -317,23 +449,23 @@ export default function AddressesPage() {
                     onChange={(e) => setNewAddr({ ...newAddr, isDefault: e.target.checked })}
                     className="h-4 w-4 border-gray-300 text-black focus:ring-black accent-black"
                   />
-                  <span className="text-xs text-gray-700">Set as default shipping address</span>
+                  <span className="text-xs text-gray-700 font-medium">Set as default shipping destination</span>
                 </label>
               </div>
 
-              <div className="pt-4 flex justify-end gap-3 border-t border-gray-100">
+              <div className="pt-5 flex flex-col sm:flex-row justify-end gap-3 border-t border-gray-100 mt-2">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-5 py-2.5 text-xs uppercase tracking-widest text-gray-600 hover:text-black cursor-pointer"
+                  className="px-5 py-2.5 text-xs uppercase tracking-widest text-gray-600 hover:text-black cursor-pointer text-center"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="bg-black text-white px-6 py-2.5 text-xs uppercase tracking-widest hover:bg-gray-800 cursor-pointer"
+                  className="bg-black text-white px-6 py-3 text-xs font-semibold uppercase tracking-widest hover:bg-gray-800 cursor-pointer shadow-sm text-center"
                 >
-                  Save Address
+                  Save Shipping Address
                 </button>
               </div>
             </form>
