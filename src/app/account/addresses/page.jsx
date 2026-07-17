@@ -3,34 +3,7 @@
 import React, { useState } from "react";
 
 export default function AddressesPage() {
-  const [addresses, setAddresses] = useState([
-    {
-      id: "addr_1",
-      name: "VIVAAN VEER",
-      company: "Mouleeta Privé Concierge",
-      address1: "14/B, Pali Hill, Bandra West",
-      address2: "Apt 402, Luxury Heights",
-      city: "Mumbai",
-      province: "Maharashtra",
-      zip: "400050",
-      country: "India",
-      phone: "+91 98200 12345",
-      isDefault: true,
-    },
-    {
-      id: "addr_2",
-      name: "VIVAAN VEER",
-      company: "",
-      address1: "Penthouse 4B, The Oberoi Residences",
-      address2: "Golf Course Road, Sector 54",
-      city: "Gurugram",
-      province: "Haryana",
-      zip: "122002",
-      country: "India",
-      phone: "+91 98200 12345",
-      isDefault: false,
-    },
-  ]);
+  const [addresses, setAddresses] = useState([]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAddr, setEditingAddr] = useState(null);
@@ -38,8 +11,9 @@ export default function AddressesPage() {
   const [pinStatus, setPinStatus] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [activeSearchField, setActiveSearchField] = useState("");
   const [newAddr, setNewAddr] = useState({
-    name: "VIVAAN VEER",
+    name: "",
     company: "",
     address1: "",
     address2: "",
@@ -129,22 +103,59 @@ export default function AddressesPage() {
     );
   };
 
-  // Google Maps style Autocomplete on typing Street/Area (No GPS required)
-  const handleAddress1Change = async (e) => {
-    const val = e.target.value;
-    setNewAddr((prev) => ({ ...prev, address1: val }));
+  // Photon + Nominatim dual-engine super-fast autocomplete on typing (No GPS required)
+  const handleQueryChange = async (val, field) => {
+    setNewAddr((prev) => ({ ...prev, [field]: val }));
+    setActiveSearchField(field);
 
     if (val.trim().length >= 3) {
       setIsSearching(true);
       try {
-        const res = await fetch(
+        // Query Photon first (super fast, no CORS issues, indexes buildings, apartments & streets)
+        const photonRes = await fetch(
+          `https://photon.komoot.io/api/?q=${encodeURIComponent(val.trim())}&limit=6`
+        );
+        const photonData = await photonRes.json();
+        if (photonData && photonData.features && photonData.features.length > 0) {
+          const formatted = photonData.features.map((f) => {
+            const p = f.properties || {};
+            const parts = [p.name, p.street, p.locality || p.district, p.city, p.state, p.postcode].filter(Boolean);
+            return {
+              display_name: parts.join(", "),
+              name: p.name || "",
+              street: p.street || "",
+              locality: p.locality || p.district || "",
+              city: p.city || p.county || "",
+              state: p.state || "",
+              postcode: p.postcode || "",
+            };
+          });
+          setSuggestions(formatted);
+          setIsSearching(false);
+          return;
+        }
+
+        // Fallback to Nominatim if Photon returns empty
+        const nomRes = await fetch(
           `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
             val.trim()
           )}&addressdetails=1&limit=5&countrycodes=in,us,gb,ae,sg,ca,au`
         );
-        const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          setSuggestions(data);
+        const nomData = await nomRes.json();
+        if (Array.isArray(nomData) && nomData.length > 0) {
+          const formatted = nomData.map((item) => {
+            const a = item.address || {};
+            return {
+              display_name: item.display_name,
+              name: item.display_name.split(",")[0] || "",
+              street: a.road || a.suburb || "",
+              locality: a.suburb || a.city_district || "",
+              city: a.city || a.town || a.district || a.state_district || "",
+              state: a.state || "",
+              postcode: a.postcode || "",
+            };
+          });
+          setSuggestions(formatted);
         } else {
           setSuggestions([]);
         }
@@ -159,23 +170,40 @@ export default function AddressesPage() {
   };
 
   const handleSelectSuggestion = (item) => {
-    const addr = item.address || {};
-    const detectedRoad = addr.road || addr.suburb || addr.neighbourhood || item.display_name.split(',')[0] || "";
-    const detectedSub = addr.suburb || addr.city_district || "";
-    const fullStreet = detectedSub && detectedRoad !== detectedSub ? `${detectedRoad}, ${detectedSub}` : detectedRoad;
-    const detectedCity = addr.city || addr.town || addr.district || addr.county || addr.state_district || "";
-    const detectedState = addr.state || "";
-    const detectedZip = addr.postcode || "";
+    const detectedBuilding = item.name !== item.city && item.name !== item.state ? item.name : "";
+    const detectedRoad = [item.street, item.locality].filter(Boolean).join(", ") || detectedBuilding;
+    const detectedCity = item.city || "";
+    const detectedState = item.state || "";
+    const detectedZip = item.postcode || "";
 
-    setNewAddr((prev) => ({
-      ...prev,
-      address1: fullStreet || prev.address1,
-      city: detectedCity || prev.city,
-      province: detectedState || prev.province,
-      zip: detectedZip || prev.zip,
-    }));
+    setNewAddr((prev) => {
+      let updatedCompany = prev.company;
+      let updatedAddress1 = prev.address1;
+
+      if (activeSearchField === "company") {
+        updatedCompany = detectedBuilding || prev.company || item.display_name.split(",")[0];
+        if (!updatedAddress1 || updatedAddress1.length < 3) {
+          updatedAddress1 = detectedRoad || updatedAddress1;
+        }
+      } else if (activeSearchField === "address1") {
+        updatedAddress1 = detectedRoad || item.display_name.split(",")[0] || prev.address1;
+        if (!updatedCompany && detectedBuilding && detectedBuilding !== updatedAddress1) {
+          updatedCompany = detectedBuilding;
+        }
+      }
+
+      return {
+        ...prev,
+        company: updatedCompany,
+        address1: updatedAddress1,
+        city: detectedCity || prev.city,
+        province: detectedState || prev.province,
+        zip: detectedZip || prev.zip,
+      };
+    });
+
     setSuggestions([]);
-    setPinStatus(`✨ Auto-completed: ${detectedCity}, ${detectedState} (${detectedZip || 'Verified Area'})`);
+    setPinStatus(`✨ Auto-completed: ${detectedCity || "Selected Location"}, ${detectedState} ${detectedZip ? `(${detectedZip})` : ""}`);
   };
 
   const handleSetDefault = (id) => {
@@ -201,7 +229,7 @@ export default function AddressesPage() {
     setPinStatus("");
     setSuggestions([]);
     setNewAddr({
-      name: "VIVAAN VEER",
+      name: "",
       company: "",
       address1: "",
       address2: "",
@@ -392,46 +420,81 @@ export default function AddressesPage() {
                 <input
                   type="text"
                   required
+                  placeholder="Enter full name"
                   value={newAddr.name}
                   onChange={(e) => setNewAddr({ ...newAddr, name: e.target.value })}
                   className="w-full border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:border-black transition-colors"
                 />
               </div>
 
-              {/* Building / Apartment Name Required */}
-              <div>
+              {/* Building / Apartment Name with Live Autocomplete */}
+              <div className="relative">
                 <label className="block text-xs uppercase tracking-wider text-stone-900 font-semibold mb-1">
                   Building / Apartment / Flat Name <span className="text-red-600">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. French Apartment, Flat 603, Luxury Heights"
+                  placeholder="Start typing building, apartment, or flat name"
                   value={newAddr.company}
-                  onChange={(e) => setNewAddr({ ...newAddr, company: e.target.value })}
+                  onChange={(e) => handleQueryChange(e.target.value, "company")}
                   className="w-full border border-stone-400 bg-stone-50/50 px-3 py-2.5 text-sm focus:outline-none focus:border-black focus:bg-white transition-colors"
                 />
+                {isSearching && activeSearchField === "company" && (
+                  <div className="absolute right-3 top-9 text-[11px] text-stone-400 animate-pulse">
+                    Searching suggestions...
+                  </div>
+                )}
+                {suggestions.length > 0 && activeSearchField === "company" && (
+                  <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-stone-300 shadow-2xl rounded-sm z-50 max-h-56 overflow-y-auto divide-y divide-stone-100">
+                    <div className="px-3 py-1.5 bg-stone-100 text-[10px] uppercase tracking-widest text-stone-500 font-semibold flex justify-between items-center">
+                      <span>Address Autocomplete Suggestions</span>
+                      <button
+                        type="button"
+                        onClick={() => setSuggestions([])}
+                        className="text-stone-400 hover:text-black font-bold cursor-pointer"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    {suggestions.map((item, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => handleSelectSuggestion(item)}
+                        className="px-3 py-2.5 hover:bg-stone-50 cursor-pointer transition-colors text-left"
+                      >
+                        <p className="text-xs font-semibold text-stone-900 truncate">
+                          {item.display_name.split(',')[0]}
+                        </p>
+                        <p className="text-[11px] text-stone-500 line-clamp-1">
+                          {item.display_name}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
+              {/* Address Line 1 with Live Autocomplete */}
               <div className="relative">
                 <label className="block text-xs uppercase tracking-wider text-gray-600 mb-1">Address Line 1 (Street / Area) *</label>
                 <input
                   type="text"
                   required
-                  placeholder="Start typing street, area, or landmark (e.g. Pali Hill, Cyber Hub)"
+                  placeholder="Start typing street, area, or road name"
                   value={newAddr.address1}
-                  onChange={handleAddress1Change}
+                  onChange={(e) => handleQueryChange(e.target.value, "address1")}
                   className="w-full border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:border-black transition-colors"
                 />
-                {isSearching && (
+                {isSearching && activeSearchField === "address1" && (
                   <div className="absolute right-3 top-9 text-[11px] text-stone-400 animate-pulse">
                     Searching suggestions...
                   </div>
                 )}
-                {suggestions.length > 0 && (
+                {suggestions.length > 0 && activeSearchField === "address1" && (
                   <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-stone-300 shadow-2xl rounded-sm z-50 max-h-56 overflow-y-auto divide-y divide-stone-100">
                     <div className="px-3 py-1.5 bg-stone-100 text-[10px] uppercase tracking-widest text-stone-500 font-semibold flex justify-between items-center">
-                      <span>Google Maps Autocomplete Suggestions</span>
+                      <span>Address Autocomplete Suggestions</span>
                       <button
                         type="button"
                         onClick={() => setSuggestions([])}
@@ -462,7 +525,7 @@ export default function AddressesPage() {
                 <label className="block text-xs uppercase tracking-wider text-gray-600 mb-1">Address Line 2 (Landmark / Sector - Optional)</label>
                 <input
                   type="text"
-                  placeholder="e.g. Near Town Central Mall"
+                  placeholder="Enter landmark or sector"
                   value={newAddr.address2}
                   onChange={(e) => setNewAddr({ ...newAddr, address2: e.target.value })}
                   className="w-full border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:border-black transition-colors"
@@ -478,7 +541,7 @@ export default function AddressesPage() {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. 400050 (Auto-fills City & State)"
+                    placeholder="Enter 6-digit postal or PIN code"
                     value={newAddr.zip}
                     onChange={handlePinChange}
                     className="w-full border border-stone-400 bg-stone-50/50 px-3 py-2.5 text-sm font-medium focus:outline-none focus:border-black focus:bg-white transition-colors"
@@ -489,7 +552,7 @@ export default function AddressesPage() {
                   <input
                     type="tel"
                     required
-                    placeholder="+91 98200 12345"
+                    placeholder="Enter phone number"
                     value={newAddr.phone}
                     onChange={(e) => setNewAddr({ ...newAddr, phone: e.target.value })}
                     className="w-full border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:border-black transition-colors"
