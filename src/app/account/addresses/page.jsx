@@ -36,6 +36,8 @@ export default function AddressesPage() {
   const [editingAddr, setEditingAddr] = useState(null);
   const [isLocating, setIsLocating] = useState(false);
   const [pinStatus, setPinStatus] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [newAddr, setNewAddr] = useState({
     name: "VIVAAN VEER",
     company: "",
@@ -127,6 +129,55 @@ export default function AddressesPage() {
     );
   };
 
+  // Google Maps style Autocomplete on typing Street/Area (No GPS required)
+  const handleAddress1Change = async (e) => {
+    const val = e.target.value;
+    setNewAddr((prev) => ({ ...prev, address1: val }));
+
+    if (val.trim().length >= 3) {
+      setIsSearching(true);
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+            val.trim()
+          )}&addressdetails=1&limit=5&countrycodes=in,us,gb,ae,sg,ca,au`
+        );
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          setSuggestions(data);
+        } else {
+          setSuggestions([]);
+        }
+      } catch (err) {
+        setSuggestions([]);
+      } finally {
+        setIsSearching(false);
+      }
+    } else {
+      setSuggestions([]);
+    }
+  };
+
+  const handleSelectSuggestion = (item) => {
+    const addr = item.address || {};
+    const detectedRoad = addr.road || addr.suburb || addr.neighbourhood || item.display_name.split(',')[0] || "";
+    const detectedSub = addr.suburb || addr.city_district || "";
+    const fullStreet = detectedSub && detectedRoad !== detectedSub ? `${detectedRoad}, ${detectedSub}` : detectedRoad;
+    const detectedCity = addr.city || addr.town || addr.district || addr.county || addr.state_district || "";
+    const detectedState = addr.state || "";
+    const detectedZip = addr.postcode || "";
+
+    setNewAddr((prev) => ({
+      ...prev,
+      address1: fullStreet || prev.address1,
+      city: detectedCity || prev.city,
+      province: detectedState || prev.province,
+      zip: detectedZip || prev.zip,
+    }));
+    setSuggestions([]);
+    setPinStatus(`✨ Auto-completed: ${detectedCity}, ${detectedState} (${detectedZip || 'Verified Area'})`);
+  };
+
   const handleSetDefault = (id) => {
     setAddresses((prev) =>
       prev.map((a) => ({ ...a, isDefault: a.id === id }))
@@ -140,6 +191,7 @@ export default function AddressesPage() {
   const handleOpenEdit = (addr) => {
     setEditingAddr(addr);
     setPinStatus("");
+    setSuggestions([]);
     setNewAddr(addr);
     setIsModalOpen(true);
   };
@@ -147,6 +199,7 @@ export default function AddressesPage() {
   const handleOpenAdd = () => {
     setEditingAddr(null);
     setPinStatus("");
+    setSuggestions([]);
     setNewAddr({
       name: "VIVAAN VEER",
       company: "",
@@ -360,16 +413,49 @@ export default function AddressesPage() {
                 />
               </div>
 
-              <div>
+              <div className="relative">
                 <label className="block text-xs uppercase tracking-wider text-gray-600 mb-1">Address Line 1 (Street / Area) *</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Pali Hill Road, Bandra West"
+                  placeholder="Start typing street, area, or landmark (e.g. Pali Hill, Cyber Hub)"
                   value={newAddr.address1}
-                  onChange={(e) => setNewAddr({ ...newAddr, address1: e.target.value })}
+                  onChange={handleAddress1Change}
                   className="w-full border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:border-black transition-colors"
                 />
+                {isSearching && (
+                  <div className="absolute right-3 top-9 text-[11px] text-stone-400 animate-pulse">
+                    Searching suggestions...
+                  </div>
+                )}
+                {suggestions.length > 0 && (
+                  <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-stone-300 shadow-2xl rounded-sm z-50 max-h-56 overflow-y-auto divide-y divide-stone-100">
+                    <div className="px-3 py-1.5 bg-stone-100 text-[10px] uppercase tracking-widest text-stone-500 font-semibold flex justify-between items-center">
+                      <span>Google Maps Autocomplete Suggestions</span>
+                      <button
+                        type="button"
+                        onClick={() => setSuggestions([])}
+                        className="text-stone-400 hover:text-black font-bold cursor-pointer"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    {suggestions.map((item, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => handleSelectSuggestion(item)}
+                        className="px-3 py-2.5 hover:bg-stone-50 cursor-pointer transition-colors text-left"
+                      >
+                        <p className="text-xs font-semibold text-stone-900 truncate">
+                          {item.display_name.split(',')[0]}
+                        </p>
+                        <p className="text-[11px] text-stone-500 line-clamp-1">
+                          {item.display_name}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div>
