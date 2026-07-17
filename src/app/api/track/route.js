@@ -2,12 +2,10 @@ import { NextResponse } from 'next/server';
 
 // Helper function to authenticate with Shiprocket API using credentials
 async function getShiprocketToken() {
-  // If static token is already provided in environment, use it
   if (process.env.SHIPROCKET_API_TOKEN) {
     return process.env.SHIPROCKET_API_TOKEN;
   }
 
-  // Otherwise, authenticate using email and password from .env.local / Vercel
   const email = process.env.SHIPROCKET_API_EMAIL;
   const password = process.env.SHIPROCKET_API_PASSWORD;
 
@@ -51,8 +49,54 @@ export async function GET(request) {
     const token = await getShiprocketToken();
 
     // If AWB starts with our mock prefix 'MOU-TRK-' or if no token is available,
-    // return full realistic simulation data for testing the UI stepper
+    // return full realistic simulation data (status 4 for in-transit, status 5 for delivered)
     if (!token || awb?.startsWith('MOU-TRK-')) {
+      // Check if this is one of our delivered mock orders (#MOU-8640 or #MOU-8104)
+      const isDeliveredOrder = awb.includes('884012') || awb.includes('771209');
+
+      if (isDeliveredOrder) {
+        return NextResponse.json({
+          statusId: 5, // 5: Delivered
+          trackingData: {
+            tracking_data: {
+              track_status: 7,
+              shipment_status: "DELIVERED",
+              carrier: "Bluedart Express Privé",
+              expected_date: "Delivered Successfully",
+              shipment_track: [
+                {
+                  current_status: "Package Delivered & Signed by VIP Concierge",
+                  date: "2026-04-04 14:15:00",
+                  location: "Customer Residence — Mumbai"
+                },
+                {
+                  current_status: "Out for Delivery with Private Courier",
+                  date: "2026-04-04 09:30:00",
+                  location: "Bandra Delivery Hub"
+                },
+                {
+                  current_status: "Arrived at Destination Hub — Mumbai",
+                  date: "2026-04-03 16:20:00",
+                  location: "Mumbai Sorting Facility"
+                },
+                {
+                  current_status: "Dispatched from Mouleeta Central Warehouse",
+                  date: "2026-04-02 20:00:00",
+                  location: "Surat Hub"
+                },
+                {
+                  current_status: "Order Confirmed & Bespoke Packaging Completed",
+                  date: "2026-04-02 11:10:00",
+                  location: "Mouleeta Atelier"
+                }
+              ]
+            }
+          },
+          isSimulation: true
+        });
+      }
+
+      // Default simulation for in-transit order (#MOU-8921)
       return NextResponse.json({
         statusId: 4, // 4: Dispatched (In Transit)
         trackingData: {
@@ -110,9 +154,6 @@ export async function GET(request) {
     const data = await shiprocketResponse.json();
 
     // 3. Map Shiprocket's complex data to clean 1-5 UI scale
-    // Shiprocket status codes:
-    // 1: Confirmed/New, 17: Packed/Ready to ship, 18: Out for pickup/Pickup scheduled
-    // 6: In Transit/Dispatched, 7: Delivered
     const trackInfo = data?.tracking_data || {};
     const statusCode = trackInfo.track_status;
     const statusText = (trackInfo.shipment_status || "").toUpperCase();
@@ -131,7 +172,6 @@ export async function GET(request) {
       currentStatus = 1;
     }
 
-    // 4. Send the clean data back to React component
     return NextResponse.json({
       statusId: currentStatus,
       trackingData: data,

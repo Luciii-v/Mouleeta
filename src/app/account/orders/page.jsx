@@ -203,13 +203,13 @@ export default function OrdersPage() {
 
             {/* Order Actions */}
             <div className="pt-6 mt-4 border-t border-gray-100 flex flex-wrap items-center justify-end gap-4">
-              {order.fulfillmentStatus === "UNFULFILLED" && (
+              {order.trackingNumber && (
                 <button
                   type="button"
                   onClick={() => setSelectedOrder({ ...order, action: "TRACKING" })}
                   className="border border-gray-300 bg-white hover:border-black text-gray-800 px-5 py-2.5 text-xs font-medium uppercase tracking-widest transition-colors cursor-pointer"
                 >
-                  Track Package
+                  {order.fulfillmentStatus === "FULFILLED" ? "Delivery History" : "Track Package"}
                 </button>
               )}
               <button
