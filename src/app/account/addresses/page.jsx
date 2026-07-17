@@ -103,7 +103,7 @@ export default function AddressesPage() {
     );
   };
 
-  // Photon + Nominatim dual-engine super-fast autocomplete on typing (No GPS required)
+  // Esri Commercial ArcGIS + Photon + Nominatim Triple-Engine Super-Fast Autocomplete
   const handleQueryChange = async (val, field) => {
     setNewAddr((prev) => ({ ...prev, [field]: val }));
     setActiveSearchField(field);
@@ -111,54 +111,109 @@ export default function AddressesPage() {
     if (val.trim().length >= 3) {
       setIsSearching(true);
       try {
-        // Query Photon first (super fast, no CORS issues, indexes buildings, apartments & streets)
-        const photonRes = await fetch(
-          `https://photon.komoot.io/api/?q=${encodeURIComponent(val.trim())}&limit=6`
-        );
-        const photonData = await photonRes.json();
-        if (photonData && photonData.features && photonData.features.length > 0) {
-          const formatted = photonData.features.map((f) => {
-            const p = f.properties || {};
-            const parts = [p.name, p.street, p.locality || p.district, p.city, p.state, p.postcode].filter(Boolean);
-            return {
-              display_name: parts.join(", "),
-              name: p.name || "",
-              street: p.street || "",
-              locality: p.locality || p.district || "",
-              city: p.city || p.county || "",
-              state: p.state || "",
-              postcode: p.postcode || "",
-            };
-          });
-          setSuggestions(formatted);
-          setIsSearching(false);
-          return;
+        const q = val.trim();
+
+        // 1. Esri ArcGIS Commercial Geocode Service (HERE/Navteq commercial data - excellent for societies & apartments)
+        const esriPromise = fetch(
+          `https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?f=json&SingleLine=${encodeURIComponent(
+            q
+          )}&maxLocations=8&outFields=StAddr,City,Subregion,Region,Postal,PlaceName,Country`
+        )
+          .then((r) => r.json())
+          .then((d) => {
+            if (d && d.candidates && Array.isArray(d.candidates)) {
+              return d.candidates.map((c) => {
+                const attr = c.attributes || {};
+                return {
+                  display_name: c.address || attr.PlaceName || q,
+                  name: attr.PlaceName || attr.StAddr || c.address.split(",")[0] || "",
+                  street: attr.StAddr || "",
+                  locality: attr.Subregion || attr.City || "",
+                  city: attr.City || attr.Subregion || "",
+                  state: attr.Region || "",
+                  postcode: attr.Postal || "",
+                  source: "Esri Commercial",
+                };
+              });
+            }
+            return [];
+          })
+          .catch(() => []);
+
+        // 2. Photon Komoot API (Fast OSM search)
+        const photonPromise = fetch(
+          `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=6`
+        )
+          .then((r) => r.json())
+          .then((d) => {
+            if (d && d.features && Array.isArray(d.features)) {
+              return d.features.map((f) => {
+                const p = f.properties || {};
+                const parts = [p.name, p.street, p.locality || p.district, p.city, p.state, p.postcode].filter(Boolean);
+                return {
+                  display_name: parts.join(", "),
+                  name: p.name || "",
+                  street: p.street || "",
+                  locality: p.locality || p.district || "",
+                  city: p.city || p.county || "",
+                  state: p.state || "",
+                  postcode: p.postcode || "",
+                  source: "Photon OSM",
+                };
+              });
+            }
+            return [];
+          })
+          .catch(() => []);
+
+        // 3. OpenStreetMap Nominatim
+        const nomPromise = fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+            q
+          )}&addressdetails=1&limit=5&countrycodes=in,us,gb,ae,sg,ca,au`
+        )
+          .then((r) => r.json())
+          .then((d) => {
+            if (Array.isArray(d) && d.length > 0) {
+              return d.map((item) => {
+                const a = item.address || {};
+                return {
+                  display_name: item.display_name,
+                  name: item.display_name.split(",")[0] || "",
+                  street: a.road || a.suburb || "",
+                  locality: a.suburb || a.city_district || "",
+                  city: a.city || a.town || a.district || a.state_district || "",
+                  state: a.state || "",
+                  postcode: a.postcode || "",
+                  source: "Nominatim",
+                };
+              });
+            }
+            return [];
+          })
+          .catch(() => []);
+
+        const [esriResults, photonResults, nomResults] = await Promise.all([
+          esriPromise,
+          photonPromise,
+          nomPromise,
+        ]);
+
+        // Combine & deduplicate results (Esri first for precision society/building names)
+        const combined = [...esriResults, ...photonResults, ...nomResults];
+        const seen = new Set();
+        const deduplicated = [];
+
+        for (const item of combined) {
+          if (!item.display_name) continue;
+          const key = item.display_name.toLowerCase().replace(/[^a-z0-9]/g, "");
+          if (!seen.has(key) && deduplicated.length < 10) {
+            seen.add(key);
+            deduplicated.push(item);
+          }
         }
 
-        // Fallback to Nominatim if Photon returns empty
-        const nomRes = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-            val.trim()
-          )}&addressdetails=1&limit=5&countrycodes=in,us,gb,ae,sg,ca,au`
-        );
-        const nomData = await nomRes.json();
-        if (Array.isArray(nomData) && nomData.length > 0) {
-          const formatted = nomData.map((item) => {
-            const a = item.address || {};
-            return {
-              display_name: item.display_name,
-              name: item.display_name.split(",")[0] || "",
-              street: a.road || a.suburb || "",
-              locality: a.suburb || a.city_district || "",
-              city: a.city || a.town || a.district || a.state_district || "",
-              state: a.state || "",
-              postcode: a.postcode || "",
-            };
-          });
-          setSuggestions(formatted);
-        } else {
-          setSuggestions([]);
-        }
+        setSuggestions(deduplicated);
       } catch (err) {
         setSuggestions([]);
       } finally {
