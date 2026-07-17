@@ -1,5 +1,42 @@
 import { NextResponse } from 'next/server';
 
+// Helper function to authenticate with Shiprocket API using credentials
+async function getShiprocketToken() {
+  // If static token is already provided in environment, use it
+  if (process.env.SHIPROCKET_API_TOKEN) {
+    return process.env.SHIPROCKET_API_TOKEN;
+  }
+
+  // Otherwise, authenticate using email and password from .env.local / Vercel
+  const email = process.env.SHIPROCKET_API_EMAIL;
+  const password = process.env.SHIPROCKET_API_PASSWORD;
+
+  if (!email || !password) {
+    return null;
+  }
+
+  try {
+    const authRes = await fetch("https://apiv2.shiprocket.in/v1/external/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!authRes.ok) {
+      console.error(`Shiprocket auth failed with status: ${authRes.status}`);
+      return null;
+    }
+
+    const authData = await authRes.json();
+    return authData.token || null;
+  } catch (error) {
+    console.error("Error authenticating with Shiprocket API:", error);
+    return null;
+  }
+}
+
 export async function GET(request) {
   // 1. Get the AWB from the frontend request URL
   const { searchParams } = new URL(request.url);
@@ -10,12 +47,12 @@ export async function GET(request) {
   }
 
   try {
-    // Check if SHIPROCKET_API_TOKEN is configured
-    const token = process.env.SHIPROCKET_API_TOKEN;
+    // Authenticate and get token
+    const token = await getShiprocketToken();
 
+    // If AWB starts with our mock prefix 'MOU-TRK-' or if no token is available,
+    // return full realistic simulation data for testing the UI stepper
     if (!token || awb?.startsWith('MOU-TRK-')) {
-      // Return simulated/fallback tracking data for local testing or mock order IDs
-      // so the dashboard stepper can be tested immediately before going live with Shiprocket
       return NextResponse.json({
         statusId: 4, // 4: Dispatched (In Transit)
         trackingData: {
@@ -57,7 +94,7 @@ export async function GET(request) {
       });
     }
 
-    // 2. Fetch the live tracking data directly from Shiprocket
+    // 2. Fetch the live tracking data directly from Shiprocket using live token
     const shiprocketResponse = await fetch(`https://apiv2.shiprocket.in/v1/external/courier/track/awb/${awb}`, {
       method: 'GET',
       headers: {
