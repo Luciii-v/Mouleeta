@@ -189,36 +189,48 @@ export default function Header() {
           </motion.button>
 
           {status === 'authenticated' ? (
-            <div className="group relative cursor-pointer p-1">
-              {/* Google Profile Picture with Fallback */}
-              {session?.user?.image ? (
-                <Image 
-                  src={session.user.image} 
-                  alt="Profile" 
-                  width={28}
-                  height={28}
-                  className="w-7 h-7 rounded-full object-cover border border-stone-300 shadow-sm"
-                  unoptimized
-                  onError={(e) => {
-                    // If Google's image fails or is blocked, instantly swap to a sleek custom initial
-                    e.currentTarget.onerror = null; 
-                    e.currentTarget.srcset = '';
-                    e.currentTarget.src = `https://ui-avatars.com/api/?name=${session?.user?.name || 'U'}&background=1c1917&color=fff&font-size=0.4`;
-                  }}
-                />
-              ) : (
-                <div className="flex items-center justify-center w-7 h-7 rounded-full bg-stone-900 text-white text-[10px] font-bold uppercase shadow-sm">
-                  {session?.user?.name?.charAt(0) || 'U'}
-                </div>
-              )}
+            <div className="group relative p-1">
+              {/* Profile Avatar Clickable Link to Dashboard */}
+              <Link href="/account" className="block cursor-pointer" aria-label="My Account Dashboard">
+                {session?.user?.image ? (
+                  <Image 
+                    src={session.user.image} 
+                    alt="Profile" 
+                    width={28}
+                    height={28}
+                    className="w-7 h-7 rounded-full object-cover border border-stone-300 shadow-sm transition-transform group-hover:scale-105"
+                    unoptimized
+                    onError={(e) => {
+                      e.currentTarget.onerror = null; 
+                      e.currentTarget.srcset = '';
+                      e.currentTarget.src = `https://ui-avatars.com/api/?name=${session?.user?.name || 'U'}&background=1c1917&color=fff&font-size=0.4`;
+                    }}
+                  />
+                ) : (
+                  <div className="flex items-center justify-center w-7 h-7 rounded-full bg-stone-900 text-white text-[10px] font-bold uppercase shadow-sm transition-transform group-hover:scale-105">
+                    {session?.user?.name?.charAt(0) || 'U'}
+                  </div>
+                )}
+              </Link>
 
               {/* Hover Dropdown Menu */}
-              <div className="absolute right-0 top-full mt-2 w-48 bg-[#F9F8F6] shadow-xl border border-stone-200 hidden group-hover:block p-5 animate-fadeIn text-stone-900">
-                <p className="text-[10px] uppercase tracking-widest text-stone-400 mb-1">Signed in as</p>
-                <p className="text-xs text-stone-800 mb-4 truncate font-light">{session?.user?.email}</p>
+              <div className="absolute right-0 top-full mt-2 w-52 bg-[#F9F8F6] shadow-xl border border-stone-200 hidden group-hover:block p-5 animate-fadeIn text-stone-900 z-50">
+                <p className="text-[10px] uppercase tracking-widest text-stone-400 mb-0.5">Signed in as</p>
+                <p className="text-xs text-stone-800 mb-3 truncate font-light border-b border-stone-200 pb-2.5">{session?.user?.email}</p>
+                <div className="flex flex-col space-y-2.5 mb-3.5 border-b border-stone-200 pb-3">
+                  <Link href="/account/profile" className="text-xs text-stone-800 hover:text-black font-medium tracking-wide transition-colors">
+                    Profile Details
+                  </Link>
+                  <Link href="/account/orders" className="text-xs text-stone-800 hover:text-black font-medium tracking-wide transition-colors">
+                    Orders & Returns
+                  </Link>
+                  <Link href="/account/addresses" className="text-xs text-stone-800 hover:text-black font-medium tracking-wide transition-colors">
+                    Saved Addresses
+                  </Link>
+                </div>
                 <button
                   onClick={() => signOut()}
-                  className="text-[11px] uppercase tracking-widest text-stone-900 hover:text-stone-500 transition-colors w-full text-left cursor-pointer font-medium"
+                  className="text-[11px] uppercase tracking-widest text-red-600 hover:text-red-700 transition-colors w-full text-left cursor-pointer font-bold"
                 >
                   Sign Out
                 </button>
@@ -360,29 +372,47 @@ export default function Header() {
                 </Link>
 
                 {status === 'authenticated' ? (
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-2">
+                  <div className="flex flex-col gap-3">
+                    <Link
+                      href="/account"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-2.5 pb-2 border-b border-stone-200/80"
+                    >
                       {session?.user?.image ? (
                         <Image 
                           src={session.user.image} 
                           alt="Profile" 
-                          width={24}
-                          height={24}
-                          className="w-6 h-6 rounded-full object-cover border border-stone-300"
+                          width={28}
+                          height={28}
+                          className="w-7 h-7 rounded-full object-cover border border-stone-300"
                         />
                       ) : (
-                        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-stone-900 text-white text-[8px] font-bold uppercase">
+                        <div className="flex items-center justify-center w-7 h-7 rounded-full bg-stone-900 text-white text-[10px] font-bold uppercase">
                           {session?.user?.name?.charAt(0) || 'U'}
                         </div>
                       )}
-                      <span className="font-inter text-xs text-stone-800 truncate max-w-[200px]">{session?.user?.email}</span>
+                      <div className="flex flex-col">
+                        <span className="font-inter text-xs font-semibold text-stone-900 truncate max-w-[200px]">My Dashboard</span>
+                        <span className="font-inter text-[10px] text-stone-500 truncate max-w-[200px]">{session?.user?.email}</span>
+                      </div>
+                    </Link>
+                    <div className="flex flex-col gap-2 pl-1">
+                      <Link href="/account/profile" onClick={() => setIsMobileMenuOpen(false)} className="font-inter text-xs text-stone-800 hover:text-black py-0.5">
+                        Profile Details
+                      </Link>
+                      <Link href="/account/orders" onClick={() => setIsMobileMenuOpen(false)} className="font-inter text-xs text-stone-800 hover:text-black py-0.5">
+                        Orders & Returns
+                      </Link>
+                      <Link href="/account/addresses" onClick={() => setIsMobileMenuOpen(false)} className="font-inter text-xs text-stone-800 hover:text-black py-0.5">
+                        Saved Addresses
+                      </Link>
                     </div>
                     <button
                       onClick={() => {
                         setIsMobileMenuOpen(false);
                         signOut();
                       }}
-                      className="font-metropolis text-[9px] uppercase tracking-widest text-left text-red-600 font-bold"
+                      className="font-metropolis text-[10px] uppercase tracking-widest text-left text-red-600 font-bold pt-2 border-t border-stone-200/80 mt-1"
                     >
                       Sign Out
                     </button>

@@ -60,7 +60,7 @@ export default function ProfilePage() {
   return (
     <div className="space-y-8">
       {/* Header Section */}
-      <div className="border-b border-gray-200/80 pb-6">
+      <div className="border-b border-gray-200/80 pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-light tracking-tight text-gray-900">
             Profile Details
@@ -68,6 +68,34 @@ export default function ProfilePage() {
           <p className="text-sm text-gray-500 mt-1">
             Personal details and account preferences mapped via Shopify Customer API.
           </p>
+        </div>
+        <div className="flex items-center gap-3">
+          {!isEditing ? (
+            <button
+              type="button"
+              onClick={() => setIsEditing(true)}
+              className="bg-black text-white px-6 py-2.5 text-xs font-medium uppercase tracking-[0.15em] hover:bg-gray-800 transition-colors cursor-pointer shadow-sm"
+            >
+              Enable Edit Mode
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => setIsEditing(false)}
+                className="border border-gray-300 bg-white px-5 py-2.5 text-xs font-medium uppercase tracking-[0.15em] text-gray-600 hover:text-black transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={(e) => handleSave(e)}
+                className="bg-emerald-700 text-white px-6 py-2.5 text-xs font-medium uppercase tracking-[0.15em] hover:bg-emerald-800 transition-colors cursor-pointer shadow-sm"
+              >
+                Save Changes
+              </button>
+            </>
+          )}
         </div>
       </div>
 

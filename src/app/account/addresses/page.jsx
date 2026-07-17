@@ -182,19 +182,19 @@ export default function AddressesPage() {
                   Primary Destination
                 </span>
               )}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => handleOpenEdit(addr)}
-                  className="text-xs font-medium uppercase tracking-wider text-gray-600 hover:text-black transition-colors cursor-pointer"
+                  className="border border-gray-300 bg-white hover:border-black text-gray-800 px-4 py-2 text-xs font-medium uppercase tracking-widest transition-colors cursor-pointer"
                 >
-                  Edit
+                  Edit Address
                 </button>
                 {addresses.length > 1 && (
                   <button
                     type="button"
                     onClick={() => handleRemove(addr.id)}
-                    className="text-xs font-medium uppercase tracking-wider text-red-600 hover:text-red-700 transition-colors cursor-pointer"
+                    className="border border-red-200 bg-white hover:border-red-600 text-red-600 px-4 py-2 text-xs font-medium uppercase tracking-widest transition-colors cursor-pointer"
                   >
                     Remove
                   </button>
