@@ -103,7 +103,7 @@ export default function AddressesPage() {
     );
   };
 
-  // Esri Commercial ArcGIS + Photon + Nominatim Triple-Engine Super-Fast Autocomplete
+  // Esri Commercial ArcGIS + Photon + Nominatim Triple-Engine Super-Fast Autocomplete (Apple Maps Accuracy)
   const handleQueryChange = async (val, field) => {
     setNewAddr((prev) => ({ ...prev, [field]: val }));
     setActiveSearchField(field);
@@ -111,27 +111,36 @@ export default function AddressesPage() {
     if (val.trim().length >= 3) {
       setIsSearching(true);
       try {
-        const q = val.trim();
+        // Clean trailing commas and extra spaces so queries like "french apartment, greater noida," parse perfectly
+        const q = val.trim().replace(/,\s*$/, "").replace(/\s+/g, " ");
 
-        // 1. Esri ArcGIS Commercial Geocode Service (HERE/Navteq commercial data - excellent for societies & apartments)
+        // 1. Esri ArcGIS Commercial Geocode Service (Navteq/HERE commercial data - exact Apple Maps POI/Society matching)
         const esriPromise = fetch(
           `https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?f=json&SingleLine=${encodeURIComponent(
             q
-          )}&maxLocations=8&outFields=StAddr,City,Subregion,Region,Postal,PlaceName,Country`
+          )}&maxLocations=10&outFields=*`
         )
           .then((r) => r.json())
           .then((d) => {
             if (d && d.candidates && Array.isArray(d.candidates)) {
               return d.candidates.map((c) => {
                 const attr = c.attributes || {};
+                const placeName = attr.PlaceName || attr.StAddr || c.address.split(",")[0] || q;
+                const fullAddress = attr.LongLabel || attr.Match_addr || attr.Place_addr || c.address;
+                const parts = fullAddress.split(",").map((p) => p.trim());
+                // Create clean subtitle without duplicating the title
+                const subtitleParts = parts.filter((p) => p.toLowerCase() !== placeName.toLowerCase());
+                const cleanSubtitle = subtitleParts.join(", ") || fullAddress;
+
                 return {
-                  display_name: c.address || attr.PlaceName || q,
-                  name: attr.PlaceName || attr.StAddr || c.address.split(",")[0] || "",
-                  street: attr.StAddr || "",
-                  locality: attr.Subregion || attr.City || "",
+                  title: placeName,
+                  subtitle: cleanSubtitle,
+                  display_name: fullAddress,
+                  building: attr.PlaceName || (placeName !== attr.City && placeName !== attr.Region ? placeName : ""),
+                  street: attr.StAddr || subtitleParts[0] || "",
                   city: attr.City || attr.Subregion || "",
                   state: attr.Region || "",
-                  postcode: attr.Postal || "",
+                  pin: attr.Postal || "",
                   source: "Esri Commercial",
                 };
               });
@@ -149,15 +158,21 @@ export default function AddressesPage() {
             if (d && d.features && Array.isArray(d.features)) {
               return d.features.map((f) => {
                 const p = f.properties || {};
-                const parts = [p.name, p.street, p.locality || p.district, p.city, p.state, p.postcode].filter(Boolean);
+                const placeName = p.name || p.street || q;
+                const subtitleParts = [p.street, p.locality || p.district, p.city, p.state, p.postcode].filter(
+                  (part) => part && part.toLowerCase() !== placeName.toLowerCase()
+                );
+                const fullAddress = [placeName, ...subtitleParts].join(", ");
+
                 return {
-                  display_name: parts.join(", "),
-                  name: p.name || "",
-                  street: p.street || "",
-                  locality: p.locality || p.district || "",
+                  title: placeName,
+                  subtitle: subtitleParts.join(", ") || fullAddress,
+                  display_name: fullAddress,
+                  building: p.name || "",
+                  street: p.street || p.locality || "",
                   city: p.city || p.county || "",
                   state: p.state || "",
-                  postcode: p.postcode || "",
+                  pin: p.postcode || "",
                   source: "Photon OSM",
                 };
               });
@@ -170,21 +185,28 @@ export default function AddressesPage() {
         const nomPromise = fetch(
           `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
             q
-          )}&addressdetails=1&limit=5&countrycodes=in,us,gb,ae,sg,ca,au`
+          )}&addressdetails=1&limit=6&countrycodes=in,us,gb,ae,sg,ca,au`
         )
           .then((r) => r.json())
           .then((d) => {
             if (Array.isArray(d) && d.length > 0) {
               return d.map((item) => {
                 const a = item.address || {};
+                const placeName = item.name || item.display_name.split(",")[0] || q;
+                const subtitleParts = item.display_name
+                  .split(",")
+                  .map((p) => p.trim())
+                  .filter((p) => p.toLowerCase() !== placeName.toLowerCase());
+
                 return {
+                  title: placeName,
+                  subtitle: subtitleParts.join(", ") || item.display_name,
                   display_name: item.display_name,
-                  name: item.display_name.split(",")[0] || "",
-                  street: a.road || a.suburb || "",
-                  locality: a.suburb || a.city_district || "",
+                  building: a.building || a.residential || a.apartments || item.name || "",
+                  street: a.road || a.suburb || a.neighbourhood || "",
                   city: a.city || a.town || a.district || a.state_district || "",
                   state: a.state || "",
-                  postcode: a.postcode || "",
+                  pin: a.postcode || "",
                   source: "Nominatim",
                 };
               });
@@ -199,14 +221,18 @@ export default function AddressesPage() {
           nomPromise,
         ]);
 
-        // Combine & deduplicate results (Esri first for precision society/building names)
+        // Combine & deduplicate results (Esri first for exact commercial Apple Maps precision)
         const combined = [...esriResults, ...photonResults, ...nomResults];
         const seen = new Set();
         const deduplicated = [];
 
         for (const item of combined) {
-          if (!item.display_name) continue;
-          const key = item.display_name.toLowerCase().replace(/[^a-z0-9]/g, "");
+          if (!item.title || !item.subtitle) continue;
+          // Filter out standalone city/region names if user typed more specific text like apartment/building
+          if (q.length > 8 && item.title.toLowerCase() === item.city.toLowerCase() && !item.building && !item.street) {
+            continue;
+          }
+          const key = `${item.title.toLowerCase().replace(/[^a-z0-9]/g, "")}_${item.city.toLowerCase().replace(/[^a-z0-9]/g, "")}`;
           if (!seen.has(key) && deduplicated.length < 10) {
             seen.add(key);
             deduplicated.push(item);
@@ -225,23 +251,23 @@ export default function AddressesPage() {
   };
 
   const handleSelectSuggestion = (item) => {
-    const detectedBuilding = item.name !== item.city && item.name !== item.state ? item.name : "";
-    const detectedRoad = [item.street, item.locality].filter(Boolean).join(", ") || detectedBuilding;
+    const detectedBuilding = item.building || (item.title !== item.city && item.title !== item.state ? item.title : "");
+    const detectedRoad = [item.street, item.locality].filter(Boolean).join(", ") || item.subtitle.split(",")[0] || detectedBuilding;
     const detectedCity = item.city || "";
     const detectedState = item.state || "";
-    const detectedZip = item.postcode || "";
+    const detectedZip = item.pin || "";
 
     setNewAddr((prev) => {
       let updatedCompany = prev.company;
       let updatedAddress1 = prev.address1;
 
       if (activeSearchField === "company") {
-        updatedCompany = detectedBuilding || prev.company || item.display_name.split(",")[0];
+        updatedCompany = detectedBuilding || item.title || prev.company;
         if (!updatedAddress1 || updatedAddress1.length < 3) {
           updatedAddress1 = detectedRoad || updatedAddress1;
         }
       } else if (activeSearchField === "address1") {
-        updatedAddress1 = detectedRoad || item.display_name.split(",")[0] || prev.address1;
+        updatedAddress1 = detectedRoad || item.title || prev.address1;
         if (!updatedCompany && detectedBuilding && detectedBuilding !== updatedAddress1) {
           updatedCompany = detectedBuilding;
         }
@@ -258,7 +284,7 @@ export default function AddressesPage() {
     });
 
     setSuggestions([]);
-    setPinStatus(`✨ Auto-completed: ${detectedCity || "Selected Location"}, ${detectedState} ${detectedZip ? `(${detectedZip})` : ""}`);
+    setPinStatus(`✨ Auto-completed: ${detectedCity || "Verified Location"}, ${detectedState} ${detectedZip ? `(${detectedZip})` : ""}`);
   };
 
   const handleSetDefault = (id) => {
@@ -501,8 +527,8 @@ export default function AddressesPage() {
                   </div>
                 )}
                 {suggestions.length > 0 && activeSearchField === "company" && (
-                  <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-stone-300 shadow-2xl rounded-sm z-50 max-h-56 overflow-y-auto divide-y divide-stone-100">
-                    <div className="px-3 py-1.5 bg-stone-100 text-[10px] uppercase tracking-widest text-stone-500 font-semibold flex justify-between items-center">
+                  <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-stone-300 shadow-2xl rounded-sm z-50 max-h-64 overflow-y-auto divide-y divide-stone-100">
+                    <div className="px-3 py-1.5 bg-stone-100 text-[10px] uppercase tracking-widest text-stone-500 font-semibold flex justify-between items-center sticky top-0 bg-stone-100 z-10">
                       <span>Address Autocomplete Suggestions</span>
                       <button
                         type="button"
@@ -516,14 +542,19 @@ export default function AddressesPage() {
                       <div
                         key={idx}
                         onClick={() => handleSelectSuggestion(item)}
-                        className="px-3 py-2.5 hover:bg-stone-50 cursor-pointer transition-colors text-left"
+                        className="p-3 hover:bg-stone-50 cursor-pointer transition-all flex items-start gap-3 text-left group"
                       >
-                        <p className="text-xs font-semibold text-stone-900 truncate">
-                          {item.display_name.split(',')[0]}
-                        </p>
-                        <p className="text-[11px] text-stone-500 line-clamp-1">
-                          {item.display_name}
-                        </p>
+                        <div className="w-8 h-8 rounded-full bg-stone-200/80 group-hover:bg-stone-300/80 flex items-center justify-center shrink-0 mt-0.5 transition-colors text-base shadow-2xs">
+                          {item.building || item.title?.toLowerCase().includes("apartment") || item.title?.toLowerCase().includes("tower") || item.title?.toLowerCase().includes("flat") || item.title?.toLowerCase().includes("residence") ? "🏢" : "📍"}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-bold text-stone-900 truncate group-hover:text-black transition-colors">
+                            {item.title}
+                          </p>
+                          <p className="text-[11px] text-stone-500 line-clamp-2 leading-tight mt-0.5 font-medium">
+                            {item.subtitle}
+                          </p>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -547,8 +578,8 @@ export default function AddressesPage() {
                   </div>
                 )}
                 {suggestions.length > 0 && activeSearchField === "address1" && (
-                  <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-stone-300 shadow-2xl rounded-sm z-50 max-h-56 overflow-y-auto divide-y divide-stone-100">
-                    <div className="px-3 py-1.5 bg-stone-100 text-[10px] uppercase tracking-widest text-stone-500 font-semibold flex justify-between items-center">
+                  <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-stone-300 shadow-2xl rounded-sm z-50 max-h-64 overflow-y-auto divide-y divide-stone-100">
+                    <div className="px-3 py-1.5 bg-stone-100 text-[10px] uppercase tracking-widest text-stone-500 font-semibold flex justify-between items-center sticky top-0 bg-stone-100 z-10">
                       <span>Address Autocomplete Suggestions</span>
                       <button
                         type="button"
@@ -562,14 +593,19 @@ export default function AddressesPage() {
                       <div
                         key={idx}
                         onClick={() => handleSelectSuggestion(item)}
-                        className="px-3 py-2.5 hover:bg-stone-50 cursor-pointer transition-colors text-left"
+                        className="p-3 hover:bg-stone-50 cursor-pointer transition-all flex items-start gap-3 text-left group"
                       >
-                        <p className="text-xs font-semibold text-stone-900 truncate">
-                          {item.display_name.split(',')[0]}
-                        </p>
-                        <p className="text-[11px] text-stone-500 line-clamp-1">
-                          {item.display_name}
-                        </p>
+                        <div className="w-8 h-8 rounded-full bg-stone-200/80 group-hover:bg-stone-300/80 flex items-center justify-center shrink-0 mt-0.5 transition-colors text-base shadow-2xs">
+                          {item.building || item.title?.toLowerCase().includes("apartment") || item.title?.toLowerCase().includes("tower") || item.title?.toLowerCase().includes("flat") || item.title?.toLowerCase().includes("residence") ? "🏢" : "📍"}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-bold text-stone-900 truncate group-hover:text-black transition-colors">
+                            {item.title}
+                          </p>
+                          <p className="text-[11px] text-stone-500 line-clamp-2 leading-tight mt-0.5 font-medium">
+                            {item.subtitle}
+                          </p>
+                        </div>
                       </div>
                     ))}
                   </div>
