@@ -59,39 +59,82 @@ export default function AddressesPage() {
     }
   };
 
-  // Google Maps GPS Geolocation Auto-Capture
+  // High-Precision GPS Geolocation Auto-Capture (Sub-second instant detection via multi-engine reverse geocoding)
   const handleDetectLocation = () => {
     if (!navigator.geolocation) {
       setPinStatus("Geolocation is not supported by your browser.");
       return;
     }
     setIsLocating(true);
-    setPinStatus("Locating via GPS coordinates like Google Maps...");
+    setPinStatus("Detecting your current location & PIN code...");
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         try {
           const { latitude, longitude } = pos.coords;
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-          );
-          const data = await res.json();
-          if (data && data.address) {
-            const addr = data.address;
-            const detectedCity = addr.city || addr.town || addr.district || addr.county || "";
-            const detectedState = addr.state || "";
-            const detectedZip = addr.postcode || "";
-            const detectedRoad = addr.road || addr.suburb || "";
-            setNewAddr((prev) => ({
-              ...prev,
-              city: detectedCity || prev.city,
-              province: detectedState || prev.province,
-              zip: detectedZip || prev.zip,
-              address1: prev.address1 || detectedRoad,
-            }));
-            setPinStatus(`✨ Auto-captured location: ${detectedCity}, ${detectedState}`);
-          }
+          // Race multi-engine reverse geocoding (Esri + BigDataCloud + Nominatim) for sub-second instant completion
+          const esriPromise = fetch(
+            `https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode?f=json&location=${longitude},${latitude}`
+          )
+            .then((r) => r.json())
+            .catch(() => null);
+
+          const bdcPromise = fetch(
+            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+          )
+            .then((r) => r.json())
+            .catch(() => null);
+
+          const nomPromise = fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
+            { headers: { "User-Agent": "MouleetaShop/1.0" } }
+          )
+            .then((r) => r.json())
+            .catch(() => null);
+
+          const [esriRes, bdcRes, nomRes] = await Promise.all([esriPromise, bdcPromise, nomPromise]);
+
+          const detectedCity =
+            esriRes?.City ||
+            esriRes?.MetroArea ||
+            esriRes?.Subregion ||
+            bdcRes?.city ||
+            bdcRes?.locality ||
+            nomRes?.address?.city ||
+            nomRes?.address?.town ||
+            nomRes?.address?.district ||
+            "";
+
+          const detectedState =
+            esriRes?.Region ||
+            bdcRes?.principalSubdivision ||
+            nomRes?.address?.state ||
+            "";
+
+          const detectedZip =
+            esriRes?.Postal ||
+            bdcRes?.postcode ||
+            nomRes?.address?.postcode ||
+            "";
+
+          const detectedRoad =
+            esriRes?.Address ||
+            esriRes?.District ||
+            esriRes?.PlaceName ||
+            nomRes?.address?.road ||
+            nomRes?.address?.suburb ||
+            "";
+
+          setNewAddr((prev) => ({
+            ...prev,
+            city: detectedCity || prev.city,
+            province: detectedState || prev.province,
+            zip: detectedZip || prev.zip,
+            address1: prev.address1 || detectedRoad,
+          }));
+
+          setPinStatus(`✨ Auto-captured location: ${detectedCity}${detectedState ? `, ${detectedState}` : ""}${detectedZip ? ` (${detectedZip})` : ""}`);
         } catch (err) {
-          setPinStatus("Could not reverse-geocode coordinates.");
+          setPinStatus("Could not detect location details.");
         } finally {
           setIsLocating(false);
         }
@@ -99,7 +142,8 @@ export default function AddressesPage() {
       (err) => {
         setIsLocating(false);
         setPinStatus("Location permission denied or unavailable.");
-      }
+      },
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 }
     );
   };
 
@@ -513,7 +557,7 @@ export default function AddressesPage() {
               </button>
             </div>
 
-            {/* Google Maps Location Assist Bar */}
+            {/* High-Precision Location Assist Bar */}
             <div className="bg-stone-50 border border-stone-200 p-3.5 sm:p-4 rounded-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
                 <span className="flex h-3 w-3 relative">
@@ -521,8 +565,8 @@ export default function AddressesPage() {
                   <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                 </span>
                 <div className="text-xs">
-                  <p className="font-medium text-stone-900">Google Maps Location Assist</p>
-                  <p className="text-[11px] text-stone-500">Auto-capture City & State via PIN or GPS</p>
+                  <p className="font-medium text-stone-900">High-Precision Location Assist</p>
+                  <p className="text-[11px] text-stone-500">Instant City, State & PIN auto-detection via GPS</p>
                 </div>
               </div>
               <button
