@@ -1,10 +1,17 @@
 "use client";
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import OtpVerificationModal from '@/components/OtpVerificationModal';
 
 export default function RegisterPage() {
+  const router = useRouter();
+  const [showOtpInput, setShowOtpInput] = useState(false);
+  const [otpTarget, setOtpTarget] = useState("");
+  const [otpType, setOtpType] = useState("email");
+  const [otpModalOpen, setOtpModalOpen] = useState(false);
   return (
     <main className="min-h-screen flex bg-[#F9F8F6]">
       
@@ -45,6 +52,71 @@ export default function RegisterPage() {
             Continue with Google
           </button>
 
+          <div className="relative flex items-center py-6">
+            <div className="flex-grow border-t border-stone-200"></div>
+            <span className="flex-shrink-0 mx-4 text-[10px] tracking-widest text-stone-400 uppercase font-metropolis">
+              OR REGISTER SECURELY VIA OTP
+            </span>
+            <div className="flex-grow border-t border-stone-200"></div>
+          </div>
+
+          {!showOtpInput ? (
+            <button
+              type="button"
+              onClick={() => setShowOtpInput(true)}
+              className="w-full border border-stone-900 bg-white text-stone-900 py-4 text-xs tracking-[0.2em] uppercase hover:bg-stone-900 hover:text-white transition-colors cursor-pointer"
+            >
+              Verify & Register via OTP
+            </button>
+          ) : (
+            <div className="space-y-3 bg-stone-50 border border-stone-200 p-4 animate-fadeIn">
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setOtpType("email")}
+                  className={`flex-1 py-2 text-[10px] font-medium uppercase tracking-wider transition-colors cursor-pointer ${
+                    otpType === "email" ? "bg-black text-white" : "bg-white border border-stone-200 text-stone-600"
+                  }`}
+                >
+                  📧 Email OTP
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setOtpType("phone")}
+                  className={`flex-1 py-2 text-[10px] font-medium uppercase tracking-wider transition-colors cursor-pointer ${
+                    otpType === "phone" ? "bg-black text-white" : "bg-white border border-stone-200 text-stone-600"
+                  }`}
+                >
+                  📱 Phone SMS
+                </button>
+              </div>
+              <input
+                type={otpType === "email" ? "email" : "tel"}
+                placeholder={otpType === "email" ? "Enter your email (e.g. name@domain.com)" : "Enter mobile (+91 98200...)"}
+                value={otpTarget}
+                onChange={(e) => setOtpTarget(e.target.value)}
+                className="w-full border border-stone-300 bg-white px-3.5 py-3 text-sm text-stone-900 focus:outline-none focus:border-black rounded-none"
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowOtpInput(false)}
+                  className="w-1/3 border border-stone-300 py-2.5 text-[11px] uppercase tracking-wider text-stone-600 hover:text-black cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={!otpTarget.trim()}
+                  onClick={() => setOtpModalOpen(true)}
+                  className="w-2/3 bg-black text-white py-2.5 text-[11px] font-medium uppercase tracking-wider hover:bg-stone-800 transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
+                >
+                  Dispatch Passcode →
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Login Link */}
           <div className="mt-12 text-center border-t border-stone-200 pt-8">
             <p className="text-[11px] tracking-widest uppercase text-stone-500 mb-4">
@@ -60,6 +132,16 @@ export default function RegisterPage() {
 
         </div>
       </div>
+
+      <OtpVerificationModal
+        isOpen={otpModalOpen}
+        onClose={() => setOtpModalOpen(false)}
+        target={otpTarget}
+        type={otpType}
+        onVerified={() => {
+          router.push('/account/profile');
+        }}
+      />
     </main>
   );
 }

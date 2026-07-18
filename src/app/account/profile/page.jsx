@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import OtpVerificationModal from "@/components/OtpVerificationModal";
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
@@ -14,6 +15,9 @@ export default function ProfilePage() {
     acceptsMarketing: true,
   });
   const [showNotification, setShowNotification] = useState(false);
+  const [verifiedEmail, setVerifiedEmail] = useState("vivaan.veer@mouleeta.com");
+  const [verifiedPhone, setVerifiedPhone] = useState("+91 98200 12345");
+  const [otpModal, setOtpModal] = useState({ isOpen: false, target: "", type: "email" });
 
   const countryCodes = [
     { code: "+91", flag: "🇮🇳", label: "India (+91)" },
@@ -50,9 +54,26 @@ export default function ProfilePage() {
 
   const handleSave = (e) => {
     e.preventDefault();
+    const currentFullPhone = `${formData.countryCode} ${formData.phone}`.trim();
+    if (formData.email !== verifiedEmail) {
+      setOtpModal({ isOpen: true, target: formData.email, type: "email" });
+      return;
+    }
+    if (currentFullPhone !== verifiedPhone) {
+      setOtpModal({ isOpen: true, target: currentFullPhone, type: "phone" });
+      return;
+    }
     setIsEditing(false);
     setShowNotification(true);
     setTimeout(() => setShowNotification(false), 4000);
+  };
+
+  const handleOtpVerified = (target, type) => {
+    if (type === "email") {
+      setVerifiedEmail(target);
+    } else {
+      setVerifiedPhone(target);
+    }
   };
 
   const selectedCountry = countryCodes.find((c) => c.code === formData.countryCode) || countryCodes[0];
@@ -165,12 +186,32 @@ export default function ProfilePage() {
 
             {/* Email Address */}
             <div className="space-y-2">
-              <label
-                htmlFor="email"
-                className="block text-xs font-medium uppercase tracking-wider text-gray-600"
-              >
-                Email Address
-              </label>
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="email"
+                  className="block text-xs font-medium uppercase tracking-wider text-gray-600"
+                >
+                  Email Address
+                </label>
+                {formData.email === verifiedEmail ? (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 border border-emerald-200">
+                    ✓ Verified
+                  </span>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-amber-700 bg-amber-50 px-2 py-0.5 border border-amber-200">
+                      ⚠️ Unverified
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setOtpModal({ isOpen: true, target: formData.email, type: "email" })}
+                      className="text-[10px] font-bold uppercase tracking-wider text-black underline hover:text-gray-600 transition-colors cursor-pointer"
+                    >
+                      Verify via OTP
+                    </button>
+                  </div>
+                )}
+              </div>
               <input
                 type="email"
                 id="email"
@@ -188,12 +229,32 @@ export default function ProfilePage() {
 
             {/* Phone Number with International Dialing Codes + Flags */}
             <div className="space-y-2">
-              <label
-                htmlFor="phone"
-                className="block text-xs font-medium uppercase tracking-wider text-gray-600"
-              >
-                Phone Number
-              </label>
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="phone"
+                  className="block text-xs font-medium uppercase tracking-wider text-gray-600"
+                >
+                  Phone Number
+                </label>
+                {`${formData.countryCode} ${formData.phone}`.trim() === verifiedPhone ? (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 border border-emerald-200">
+                    ✓ Verified
+                  </span>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-amber-700 bg-amber-50 px-2 py-0.5 border border-amber-200">
+                      ⚠️ Unverified
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setOtpModal({ isOpen: true, target: `${formData.countryCode} ${formData.phone}`.trim(), type: "phone" })}
+                      className="text-[10px] font-bold uppercase tracking-wider text-black underline hover:text-gray-600 transition-colors cursor-pointer"
+                    >
+                      Verify via OTP
+                    </button>
+                  </div>
+                )}
+              </div>
               {isEditing ? (
                 <div className="flex">
                   <select
@@ -219,10 +280,19 @@ export default function ProfilePage() {
                   />
                 </div>
               ) : (
-                <div className="w-full border border-gray-200 bg-gray-50/70 px-4 py-3 text-sm text-gray-800 flex items-center gap-2 cursor-not-allowed">
-                  <span>{selectedCountry.flag}</span>
-                  <span className="font-medium text-gray-600">{formData.countryCode}</span>
-                  <span>{formData.phone}</span>
+                <div className="w-full border border-gray-200 bg-gray-50/70 px-4 py-3 text-sm text-gray-800 flex items-center justify-between cursor-not-allowed">
+                  <div className="flex items-center gap-2">
+                    <span>{selectedCountry.flag}</span>
+                    <span className="font-medium text-gray-600">{formData.countryCode}</span>
+                    <span>{formData.phone}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setOtpModal({ isOpen: true, target: `${formData.countryCode} ${formData.phone}`.trim(), type: "phone" })}
+                    className="text-[10px] font-semibold uppercase tracking-wider text-stone-600 hover:text-black transition-colors cursor-pointer underline"
+                  >
+                    Manage OTP
+                  </button>
                 </div>
               )}
             </div>
@@ -310,6 +380,14 @@ export default function ProfilePage() {
           )}
         </div>
       </form>
+
+      <OtpVerificationModal
+        isOpen={otpModal.isOpen}
+        onClose={() => setOtpModal({ ...otpModal, isOpen: false })}
+        target={otpModal.target}
+        type={otpModal.type}
+        onVerified={handleOtpVerified}
+      />
     </div>
   );
 }
