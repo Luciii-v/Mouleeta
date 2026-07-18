@@ -111,14 +111,19 @@ export default function AddressesPage() {
     if (val.trim().length >= 3) {
       setIsSearching(true);
       try {
-        // Clean trailing commas and extra spaces so queries like "french apartment, greater noida," parse perfectly
-        const q = val.trim().replace(/,\s*$/, "").replace(/\s+/g, " ");
+        // Clean trailing commas, extra spaces, and normalize unspaced alphanumeric combos (e.g., "sector16B" -> "sector 16B")
+        const q = val
+          .trim()
+          .replace(/([a-zA-Z]+)(\d+)/g, "$1 $2")
+          .replace(/(\d+)([a-zA-Z]+)/g, "$1 $2")
+          .replace(/,\s*$/, "")
+          .replace(/\s+/g, " ");
 
-        // 1. Esri ArcGIS Commercial Geocode Service (Navteq/HERE commercial data - exact Apple Maps POI/Society matching)
-        const esriPromise = fetch(
+        // 1A. Esri ArcGIS India Priority Service (Guarantees exact Indian society/apartment matches right at the top)
+        const esriIndiaPromise = fetch(
           `https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?f=json&SingleLine=${encodeURIComponent(
             q
-          )}&maxLocations=10&outFields=*`
+          )}&maxLocations=8&outFields=*&countryCode=IND`
         )
           .then((r) => r.json())
           .then((d) => {
@@ -128,7 +133,6 @@ export default function AddressesPage() {
                 const placeName = attr.PlaceName || attr.StAddr || c.address.split(",")[0] || q;
                 const fullAddress = attr.LongLabel || attr.Match_addr || attr.Place_addr || c.address;
                 const parts = fullAddress.split(",").map((p) => p.trim());
-                // Create clean subtitle without duplicating the title
                 const subtitleParts = parts.filter((p) => p.toLowerCase() !== placeName.toLowerCase());
                 const cleanSubtitle = subtitleParts.join(", ") || fullAddress;
 
@@ -141,7 +145,43 @@ export default function AddressesPage() {
                   city: attr.City || attr.Subregion || "",
                   state: attr.Region || "",
                   pin: attr.Postal || "",
-                  source: "Esri Commercial",
+                  isIndia: true,
+                  source: "Esri India",
+                };
+              });
+            }
+            return [];
+          })
+          .catch(() => []);
+
+        // 1B. Esri ArcGIS Global Service (Fallback if no India match or searching international address)
+        const esriGlobalPromise = fetch(
+          `https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?f=json&SingleLine=${encodeURIComponent(
+            q
+          )}&maxLocations=6&outFields=*`
+        )
+          .then((r) => r.json())
+          .then((d) => {
+            if (d && d.candidates && Array.isArray(d.candidates)) {
+              return d.candidates.map((c) => {
+                const attr = c.attributes || {};
+                const placeName = attr.PlaceName || attr.StAddr || c.address.split(",")[0] || q;
+                const fullAddress = attr.LongLabel || attr.Match_addr || attr.Place_addr || c.address;
+                const parts = fullAddress.split(",").map((p) => p.trim());
+                const subtitleParts = parts.filter((p) => p.toLowerCase() !== placeName.toLowerCase());
+                const cleanSubtitle = subtitleParts.join(", ") || fullAddress;
+
+                return {
+                  title: placeName,
+                  subtitle: cleanSubtitle,
+                  display_name: fullAddress,
+                  building: attr.PlaceName || (placeName !== attr.City && placeName !== attr.Region ? placeName : ""),
+                  street: attr.StAddr || subtitleParts[0] || "",
+                  city: attr.City || attr.Subregion || "",
+                  state: attr.Region || "",
+                  pin: attr.Postal || "",
+                  isIndia: attr.Country === "IND" || attr.Region === "Uttar Pradesh" || fullAddress.includes("IND") || fullAddress.includes("India"),
+                  source: "Esri Global",
                 };
               });
             }
@@ -173,6 +213,7 @@ export default function AddressesPage() {
                   city: p.city || p.county || "",
                   state: p.state || "",
                   pin: p.postcode || "",
+                  isIndia: p.country === "India" || p.state === "Uttar Pradesh" || fullAddress.includes("India"),
                   source: "Photon OSM",
                 };
               });
@@ -185,7 +226,7 @@ export default function AddressesPage() {
         const nomPromise = fetch(
           `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
             q
-          )}&addressdetails=1&limit=6&countrycodes=in,us,gb,ae,sg,ca,au`
+          )}&addressdetails=1&limit=5&countrycodes=in,us,gb,ae,sg,ca,au`
         )
           .then((r) => r.json())
           .then((d) => {
@@ -207,6 +248,7 @@ export default function AddressesPage() {
                   city: a.city || a.town || a.district || a.state_district || "",
                   state: a.state || "",
                   pin: a.postcode || "",
+                  isIndia: a.country === "India" || item.display_name.includes("India"),
                   source: "Nominatim",
                 };
               });
@@ -215,20 +257,25 @@ export default function AddressesPage() {
           })
           .catch(() => []);
 
-        const [esriResults, photonResults, nomResults] = await Promise.all([
-          esriPromise,
+        const [esriIndiaResults, photonResults, nomResults, esriGlobalResults] = await Promise.all([
+          esriIndiaPromise,
           photonPromise,
           nomPromise,
+          esriGlobalPromise,
         ]);
 
-        // Combine & deduplicate results (Esri first for exact commercial Apple Maps precision)
-        const combined = [...esriResults, ...photonResults, ...nomResults];
+        // Prioritize India candidates right at the top & eliminate foreign country clutter when searching in India
+        const combined = [...esriIndiaResults, ...photonResults, ...nomResults, ...esriGlobalResults];
+        const hasIndiaMatch = combined.some((item) => item.isIndia);
         const seen = new Set();
         const deduplicated = [];
 
         for (const item of combined) {
           if (!item.title || !item.subtitle) continue;
-          // Filter out standalone city/region names if user typed more specific text like apartment/building
+          // If we already have Indian matches and the user did not explicitly type a foreign country, strip out England/Polynesia/etc.
+          if (hasIndiaMatch && !item.isIndia && !q.toLowerCase().includes("england") && !q.toLowerCase().includes("polynesia") && !q.toLowerCase().includes("uk") && !q.toLowerCase().includes("usa")) {
+            continue;
+          }
           if (q.length > 8 && item.title.toLowerCase() === item.city.toLowerCase() && !item.building && !item.street) {
             continue;
           }
