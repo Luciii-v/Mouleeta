@@ -2,11 +2,13 @@
 
 import React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { usePathname, useRouter } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
 
 export default function AccountLayout({ children }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { data: session, status } = useSession();
 
   // Hide the dashboard layout on login, register, and recover routes
   const isAuthRoute =
@@ -18,6 +20,33 @@ export default function AccountLayout({ children }) {
     return <>{children}</>;
   }
 
+  // — Auth Guard —
+  // Show a minimal luxury loading state while session resolves
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-5 h-5 border border-black border-t-transparent rounded-full animate-spin" />
+          <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400 font-metropolis">
+            Authenticating
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect unauthenticated users to login
+  if (status === "unauthenticated") {
+    router.replace("/account/login");
+    return (
+      <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center">
+        <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400 font-metropolis">
+          Redirecting…
+        </p>
+      </div>
+    );
+  }
+
   const handleLogout = () => {
     try {
       signOut({ callbackUrl: "/" });
@@ -25,6 +54,10 @@ export default function AccountLayout({ children }) {
       window.location.href = "/";
     }
   };
+
+  // Derive display name from session
+  const displayName = session?.user?.name || "Privé Member";
+  const firstName = displayName.split(" ")[0];
 
   const navItems = {
     ORDERS: [
@@ -46,11 +79,14 @@ export default function AccountLayout({ children }) {
           {/* User Name at the top */}
           <div className="mb-10 pb-6 border-b border-gray-200/60">
             <span className="text-[10px] uppercase tracking-[0.25em] text-gray-400 font-medium block mb-1">
-              Privé Member
+              Welcome back, {firstName}
             </span>
             <h2 className="text-xl font-light tracking-tight text-gray-900 font-serif">
-              Vivaan Veer
+              {displayName}
             </h2>
+            {session?.user?.email && (
+              <p className="text-xs text-gray-400 mt-1 truncate">{session.user.email}</p>
+            )}
           </div>
 
           {/* Navigation Menu */}

@@ -1,22 +1,36 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import OtpVerificationModal from "@/components/OtpVerificationModal";
 
 export default function ProfilePage() {
+  const { data: session } = useSession();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: "Vivaan",
-    lastName: "Veer",
-    email: "vivaan.veer@mouleeta.com",
+    firstName: "",
+    lastName: "",
+    email: "",
     countryCode: "+91",
-    phone: "98200 12345",
+    phone: "",
     gender: "Prefer not to say",
-    acceptsMarketing: true,
+    acceptsMarketing: false,
   });
   const [showNotification, setShowNotification] = useState(false);
-  const [verifiedEmail, setVerifiedEmail] = useState("vivaan.veer@mouleeta.com");
-  const [verifiedPhone, setVerifiedPhone] = useState("+91 98200 12345");
+  const [verifiedEmail, setVerifiedEmail] = useState("");
+  const [verifiedPhone, setVerifiedPhone] = useState("");
+
+  // Populate form from session once available
+  useEffect(() => {
+    if (session?.user) {
+      const nameParts = (session.user.name || "").split(" ");
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ") || "";
+      const email = session.user.email || "";
+      setFormData((prev) => ({ ...prev, firstName, lastName, email }));
+      setVerifiedEmail(email);
+    }
+  }, [session]);
   const [otpModal, setOtpModal] = useState({ isOpen: false, target: "", type: "email" });
 
   const countryCodes = [
@@ -65,7 +79,7 @@ export default function ProfilePage() {
     }
     setIsEditing(false);
     setShowNotification(true);
-    setTimeout(() => setShowNotification(false), 4000);
+    setTimeout(() => setShowNotification(false), 5000);
   };
 
   const handleOtpVerified = (target, type) => {
@@ -87,7 +101,7 @@ export default function ProfilePage() {
             Profile Details
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Personal details and account preferences mapped via Shopify Customer API.
+            Your Mouleeta Privé profile. Full order history available after connecting your Shopify account.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -123,7 +137,7 @@ export default function ProfilePage() {
       {/* Notification Toast */}
       {showNotification && (
         <div className="bg-black text-white px-5 py-3.5 rounded-sm flex items-center justify-between text-xs tracking-wider animate-fadeIn shadow-lg">
-          <span>✓ Profile changes successfully saved.</span>
+          <span>✓ Profile saved locally. Shopify Customer API sync coming soon.</span>
           <button onClick={() => setShowNotification(false)} className="text-gray-400 hover:text-white cursor-pointer">✕</button>
         </div>
       )}
