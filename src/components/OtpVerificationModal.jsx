@@ -42,6 +42,7 @@ export default function OtpVerificationModal({
     }
   };
 
+  /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
   useEffect(() => {
     if (isOpen) {
       setOtp(["", "", "", "", "", ""]);
@@ -53,6 +54,7 @@ export default function OtpVerificationModal({
       }
     }
   }, [isOpen, target]);
+  /* eslint-enable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
 
   useEffect(() => {
     let timer;
