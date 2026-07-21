@@ -14,6 +14,7 @@ export default function OtpVerificationModal({
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [devOtp, setDevOtp] = useState(""); // Only populated in development mode
   const [countdown, setCountdown] = useState(30);
   const inputRefs = useRef([]);
 
@@ -31,6 +32,7 @@ export default function OtpVerificationModal({
       });
       const data = await res.json();
       if (data.success) {
+        if (data.devOtp) setDevOtp(data.devOtp); // dev mode only
         setCountdown(30);
       } else {
         setError(data.error || "Failed to send code.");
@@ -48,6 +50,7 @@ export default function OtpVerificationModal({
       setOtp(["", "", "", "", "", ""]);
       setError("");
       setSuccessMsg("");
+      setDevOtp("");
       sendOtpCode();
       if (inputRefs.current[0]) {
         setTimeout(() => inputRefs.current[0]?.focus(), 150);
@@ -169,6 +172,27 @@ export default function OtpVerificationModal({
             <span className="font-medium text-stone-800">{target}</span>. Enter below to verify ownership.
           </p>
         </div>
+
+        {/* Dev-mode sandbox banner — only visible in development when no email/SMS provider is set */}
+        {devOtp && (
+          <div className="mb-6 bg-stone-900 text-white p-3 rounded-sm flex items-center justify-between text-xs tracking-wider border border-stone-800 shadow-inner">
+            <div>
+              <span className="text-stone-400 text-[10px] uppercase block mb-0.5">Dev Mode — No Provider Configured</span>
+              <span className="font-mono font-bold tracking-widest text-emerald-400 text-sm">{devOtp}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const arr = devOtp.split("");
+                setOtp(arr);
+                handleVerify(devOtp);
+              }}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider transition-colors cursor-pointer rounded-sm"
+            >
+              ⚡ Auto-Fill &amp; Verify
+            </button>
+          </div>
+        )}
 
         {/* OTP Input Squares */}
         <div className="flex justify-center gap-2 sm:gap-3 mb-6" onPaste={handlePaste}>
