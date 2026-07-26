@@ -48,7 +48,10 @@ async function sendEmailOtp(to, otp) {
         subject: `${otp} — Your Mouleeta Verification Code`,
         html: `
           <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 24px; background: #FAFAF8;">
-            <p style="font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: #999; margin-bottom: 32px;">MOULEETA PRIVÉ</p>
+            <div style="text-align: center; margin-bottom: 32px;">
+              <img src="https://www.mouleeta.shop/logo.svg" alt="MOULEETA" style="height: 32px; width: auto;" />
+            </div>
+            <p style="font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: #999; margin-bottom: 32px; text-align: center;">MOULEETA PRIVÉ</p>
             <h2 style="font-weight: 300; font-size: 24px; letter-spacing: 0.05em; color: #1A1A1A; margin-bottom: 8px;">Verification Code</h2>
             <p style="font-size: 14px; color: #666; line-height: 1.6; margin-bottom: 32px;">
               Use the code below to securely verify your identity. It expires in <strong>10 minutes</strong>.
@@ -60,7 +63,7 @@ async function sendEmailOtp(to, otp) {
               If you did not request this code, please ignore this email. Do not share this code with anyone.
             </p>
             <hr style="border: none; border-top: 1px solid #E8E8E4; margin: 32px 0;" />
-            <p style="font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: #BBB;">
+            <p style="font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: #BBB; text-align: center;">
               MOULEETA — Crafted Consciously
             </p>
           </div>

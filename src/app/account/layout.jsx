@@ -16,6 +16,13 @@ export default function AccountLayout({ children }) {
     pathname?.startsWith("/account/register") ||
     pathname?.startsWith("/account/recover");
 
+  // Redirect unauthenticated users to login
+  React.useEffect(() => {
+    if (status === "unauthenticated" && !isAuthRoute) {
+      router.replace("/account/login");
+    }
+  }, [status, isAuthRoute, router]);
+
   if (isAuthRoute) {
     return <>{children}</>;
   }
@@ -35,9 +42,7 @@ export default function AccountLayout({ children }) {
     );
   }
 
-  // Redirect unauthenticated users to login
   if (status === "unauthenticated") {
-    router.replace("/account/login");
     return (
       <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center">
         <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400 font-metropolis">
