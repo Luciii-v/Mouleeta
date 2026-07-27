@@ -135,11 +135,11 @@ export default function Header() {
 
         {/* Center: Brand Logo and Name perfectly centered (w-1/3) */}
         <div className="w-1/3 flex flex-col items-center justify-center">
-          <Link href="/" className="flex flex-col items-center justify-center group gap-1">
+          <Link href="/" className="flex flex-col items-center justify-center group gap-0">
             {/* Crown Logo - aspect ratio 1.55 (688x444), scaled up for high visibility */}
             <motion.div
               style={{ perspective: 1000 }}
-              className="relative w-16 h-10 md:w-20 md:h-13 flex items-center justify-center transition-transform duration-300 group-hover:scale-105"
+              className="relative w-16 h-10 md:w-20 md:h-[52px] flex items-center justify-center transition-transform duration-300 group-hover:scale-105"
               initial={{ opacity: 0, rotateY: 360, y: 20 }}
               animate={{ opacity: 1, rotateY: 0, y: 0 }}
               transition={{ duration: 2.2, ease: [0.16, 1, 0.3, 1] }}
