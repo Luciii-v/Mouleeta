@@ -5,15 +5,9 @@ import Link from 'next/link';
 import { signIn } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import OtpVerificationModal from '@/components/OtpVerificationModal';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [showOtpInput, setShowOtpInput] = useState(false);
-  const [otpTarget, setOtpTarget] = useState("");
-  const [countryCode, setCountryCode] = useState("+91");
-  const [otpType, setOtpType] = useState("email");
-  const [otpModalOpen, setOtpModalOpen] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [legalModalOpen, setLegalModalOpen] = useState(false);
   const [legalType, setLegalType] = useState("terms");
@@ -58,51 +52,6 @@ export default function LoginPage() {
           </div>
 
           <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-semibold text-stone-900 font-metropolis tracking-wider uppercase">Mobile Number</label>
-              <div className="flex w-full border border-stone-300 bg-white rounded-md shadow-sm overflow-hidden focus-within:border-stone-500">
-                <select
-                  value={countryCode}
-                  onChange={(e) => setCountryCode(e.target.value)}
-                  className="bg-stone-50 border-r border-stone-200 px-3 py-3.5 text-sm text-stone-600 focus:outline-none cursor-pointer"
-                >
-                  <option value="+91">+91 (IN)</option>
-                  <option value="+1">+1 (US/CA)</option>
-                  <option value="+44">+44 (UK)</option>
-                  <option value="+61">+61 (AU)</option>
-                  <option value="+971">+971 (AE)</option>
-                  <option value="+33">+33 (FR)</option>
-                  <option value="+49">+49 (DE)</option>
-                </select>
-                <input
-                  type="tel"
-                  placeholder="Enter mobile"
-                  value={otpTarget}
-                  onChange={(e) => setOtpTarget(e.target.value)}
-                  className="w-full px-3.5 py-3.5 text-sm text-stone-900 focus:outline-none bg-transparent"
-                />
-              </div>
-            </div>
-            
-            <button
-              type="button"
-              disabled={!otpTarget.trim() || !acceptedTerms}
-              onClick={() => {
-                setOtpType("phone");
-                setOtpModalOpen(true);
-              }}
-              className="w-full bg-[#5D7052] text-white py-4 text-xs font-medium tracking-widest uppercase hover:bg-[#4b5a42] transition-colors rounded-md cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Sign up / Log in with Phone
-            </button>
-
-            <div className="relative flex items-center py-2">
-              <div className="flex-grow border-t border-stone-200"></div>
-              <span className="flex-shrink-0 mx-4 text-[10px] tracking-widest text-stone-400 uppercase font-metropolis">
-                OR
-              </span>
-              <div className="flex-grow border-t border-stone-200"></div>
-            </div>
 
             <button
               type="button"
@@ -139,15 +88,6 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <OtpVerificationModal
-        isOpen={otpModalOpen}
-        onClose={() => setOtpModalOpen(false)}
-        target={`${countryCode} ${otpTarget}`}
-        type={otpType}
-        onVerified={() => {
-          router.push('/account');
-        }}
-      />
 
       {/* Legal Modal */}
       <AnimatePresence>
