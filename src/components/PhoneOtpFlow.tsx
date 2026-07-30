@@ -48,7 +48,12 @@ export default function PhoneOtpFlow({ phone, onVerified, onClose }: PhoneOtpFlo
 
   // Setup invisible reCAPTCHA on mount
   const initRecaptcha = () => {
-    if (!recaptchaContainerRef.current) return null;
+    let container = document.getElementById("firebase-recaptcha-container");
+    if (!container) {
+      container = document.createElement("div");
+      container.id = "firebase-recaptcha-container";
+      document.body.appendChild(container);
+    }
     
     // Return existing verifier to prevent internal Firebase state errors
     if ((window as any).recaptchaVerifier) {
@@ -56,10 +61,7 @@ export default function PhoneOtpFlow({ phone, onVerified, onClose }: PhoneOtpFlo
     }
 
     try {
-      // Clear container just in case
-      recaptchaContainerRef.current.innerHTML = "";
-
-      const verifier = new RecaptchaVerifier(firebaseAuth, recaptchaContainerRef.current, {
+      const verifier = new RecaptchaVerifier(firebaseAuth, container, {
         size: "invisible",
         callback: () => {},
         "expired-callback": () => {
@@ -278,21 +280,15 @@ export default function PhoneOtpFlow({ phone, onVerified, onClose }: PhoneOtpFlo
       </button>
 
       {/* Resend */}
-      <div className="text-center">
-        {countdown > 0 ? (
-          <p className="text-[11px] text-stone-400 tracking-wider">
-            Resend in <span className="font-mono text-stone-600">0:{countdown < 10 ? `0${countdown}` : countdown}</span>
-          </p>
-        ) : !sending && (
-          <button
-            type="button"
-            onClick={sendOtp}
-            disabled={sending}
-            className="text-xs text-stone-900 font-medium uppercase tracking-wider underline hover:text-stone-600 transition-colors cursor-pointer"
-          >
-            Resend via Firebase
-          </button>
-        )}
+      <div className="text-center mt-6">
+        <button
+          type="button"
+          onClick={sendOtp}
+          disabled={sending || countdown > 0}
+          className="text-[10px] font-semibold uppercase tracking-widest text-gray-500 hover:text-black transition-colors underline disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {sending ? "SENDING..." : countdown > 0 ? `RESEND IN ${countdown}s` : "RESEND VIA FIREBASE"}
+        </button>
       </div>
     </div>
   );
