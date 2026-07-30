@@ -47,20 +47,16 @@ export default function PhoneOtpFlow({ phone, onVerified, onClose }: PhoneOtpFlo
   };
 
   // Setup invisible reCAPTCHA on mount
-  // Creates (or re-creates) the invisible reCAPTCHA verifier.
   const initRecaptcha = () => {
-    if (!recaptchaContainerRef.current) return;
+    if (!recaptchaContainerRef.current) return null;
+    
+    // Return existing verifier to prevent internal Firebase state errors
+    if ((window as any).recaptchaVerifier) {
+      return (window as any).recaptchaVerifier;
+    }
+
     try {
-      // Clear any stale verifier before creating a new one
-      if ((window as any).recaptchaVerifier) {
-        try {
-          (window as any).recaptchaVerifier.clear();
-        } catch {}
-        delete (window as any).recaptchaVerifier;
-      }
-      
-      // CRITICAL FIX: Firebase leaves old iframe nodes in the DOM which causes 
-      // the "has already been rendered" error when recreating the verifier.
+      // Clear container just in case
       recaptchaContainerRef.current.innerHTML = "";
 
       const verifier = new RecaptchaVerifier(firebaseAuth, recaptchaContainerRef.current, {
@@ -79,25 +75,26 @@ export default function PhoneOtpFlow({ phone, onVerified, onClose }: PhoneOtpFlo
     }
   };
 
+  const sendOtpCalledRef = useRef(false);
+
   useEffect(() => {
     // Initial setup
     const v = initRecaptcha();
     if (v) setRecaptchaReady(true);
 
     return () => {
-      try {
-        (window as any).recaptchaVerifier?.clear();
-        delete (window as any).recaptchaVerifier;
-      } catch {}
+      // Intentionally not clearing the verifier here because in React 18 Strict Mode,
+      // unmounting and clearing it while signInWithPhoneNumber is in-flight causes a crash.
     };
   }, []);
 
   // Auto-send OTP when component mounts and reCAPTCHA is ready
   useEffect(() => {
-    if (recaptchaReady && phone) {
+    if (recaptchaReady && phone && !sendOtpCalledRef.current) {
+      sendOtpCalledRef.current = true;
       sendOtp();
     }
-  }, [recaptchaReady]);
+  }, [recaptchaReady, phone]);
 
   // Countdown timer
   useEffect(() => {
@@ -112,8 +109,7 @@ export default function PhoneOtpFlow({ phone, onVerified, onClose }: PhoneOtpFlo
     try {
       const normalised = normalisePhone(phone);
 
-      // Always get a fresh verifier — Firebase invalidates it after one use
-      const verifier = initRecaptcha() ?? (window as any).recaptchaVerifier;
+      const verifier = initRecaptcha();
       if (!verifier) throw new Error("reCAPTCHA not ready — please refresh.");
 
       const result = await signInWithPhoneNumber(firebaseAuth, normalised, verifier);

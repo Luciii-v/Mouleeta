@@ -289,7 +289,7 @@ export default function ProfilePage() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    placeholder="98200 12345"
+                    placeholder="Enter mobile number"
                     className="w-full border border-gray-900 bg-white px-4 py-3 text-sm text-gray-900 rounded-none focus:outline-none focus:ring-1 focus:ring-black"
                   />
                 </div>
