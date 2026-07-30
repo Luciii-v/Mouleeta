@@ -10,71 +10,12 @@ export default function OrdersPage() {
   const [activeTab, setActiveTab] = useState("ALL");
   const [trackingData, setTrackingData] = useState(null);
   const [isLoadingTracking, setIsLoadingTracking] = useState(false);
-  const [returnReason, setReturnReason] = useState("");
+  const [returnItems, setReturnItems] = useState({});
+  const [returnReasons, setReturnReasons] = useState({});
+  const [compensationPreference, setCompensationPreference] = useState("");
   const [returnNotes, setReturnNotes] = useState("");
 
-  const mockOrders = [
-    {
-      id: "gid://shopify/Order/1001",
-      orderNumber: "#MOU-8921",
-      date: "May 14, 2026",
-      total: "₹24,500 INR",
-      fulfillmentStatus: "UNFULFILLED",
-      statusLabel: "Processing",
-      trackingNumber: "MOU-TRK-900213",
-      itemsCount: 1,
-      items: [
-        {
-          title: "The Georgette Evening Gown — Midnight Black",
-          variant: "Size: M",
-          quantity: 1,
-          price: "₹24,500",
-        },
-      ],
-    },
-    {
-      id: "gid://shopify/Order/1002",
-      orderNumber: "#MOU-8640",
-      date: "April 02, 2026",
-      total: "₹18,500 INR",
-      fulfillmentStatus: "FULFILLED",
-      statusLabel: "Delivered",
-      trackingNumber: "MOU-TRK-884012",
-      itemsCount: 1,
-      items: [
-        {
-          title: "Structured Silk Trench Coat — Bone White",
-          variant: "Size: L",
-          quantity: 1,
-          price: "₹18,500",
-        },
-      ],
-    },
-    {
-      id: "gid://shopify/Order/1003",
-      orderNumber: "#MOU-8104",
-      date: "January 18, 2026",
-      total: "₹32,000 INR",
-      fulfillmentStatus: "FULFILLED",
-      statusLabel: "Delivered",
-      trackingNumber: "MOU-TRK-771209",
-      itemsCount: 2,
-      items: [
-        {
-          title: "Tailored Wool Blazer — Charcoal",
-          variant: "Size: M",
-          quantity: 1,
-          price: "₹21,000",
-        },
-        {
-          title: "Pleated Silk Trousers — Charcoal",
-          variant: "Size: 32",
-          quantity: 1,
-          price: "₹11,000",
-        },
-      ],
-    },
-  ];
+  const mockOrders = [];
 
   useEffect(() => {
     if (selectedOrder?.action === "TRACKING") {
@@ -100,6 +41,47 @@ export default function OrdersPage() {
     return true;
   });
 
+  const isReturnEligible = (order) => {
+    if (order.fulfillmentStatus !== "FULFILLED" || order.paymentStatus !== "PAID") return false;
+    if (!order.deliveryDate) return false;
+    const deliveryDate = new Date(order.deliveryDate);
+    const now = new Date();
+    const diffTime = Math.abs(now - deliveryDate);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays <= 5;
+  };
+
+  const handleReturnSubmit = async () => {
+    try {
+      const selectedItemIds = Object.keys(returnItems).filter(id => returnItems[id]);
+      if (selectedItemIds.length === 0) return alert("Please select at least one item to return.");
+      
+      const payload = {
+        orderId: selectedOrder.id,
+        items: selectedItemIds.map(id => ({
+          itemId: id,
+          reason: returnReasons[id]
+        })),
+        compensationPreference,
+        notes: returnNotes
+      };
+
+      const res = await fetch("/api/returns", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) throw new Error("Failed to submit return request");
+
+      alert("Return request submitted successfully. Our VIP Concierge team will review it shortly.");
+      setSelectedOrder(null);
+    } catch (err) {
+      console.error(err);
+      alert("There was an error submitting your return. Please try again.");
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Header Section */}
@@ -114,21 +96,6 @@ export default function OrdersPage() {
         </div>
       </div>
 
-      {/* Demo Disclaimer Banner */}
-      {session && (
-        <div className="bg-amber-50 border border-amber-200 px-5 py-3.5 rounded-sm flex items-start gap-3">
-          <span className="text-amber-500 text-base mt-0.5 flex-shrink-0">ⓘ</span>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-amber-800">
-              Preview Order History
-            </p>
-            <p className="text-xs text-amber-700 mt-0.5 leading-relaxed">
-              Live order history from your Shopify account will appear here automatically after your first purchase.
-              Displaying sample orders for reference.
-            </p>
-          </div>
-        </div>
-      )}
 
       {/* Filter Tabs */}
       <div className="flex gap-4 border-b border-gray-200">
@@ -232,13 +199,28 @@ export default function OrdersPage() {
                   {order.fulfillmentStatus === "FULFILLED" ? "Delivery History" : "Track Package"}
                 </button>
               )}
-              <button
-                type="button"
-                onClick={() => setSelectedOrder({ ...order, action: "RETURN" })}
-                className="border border-gray-300 bg-white hover:border-black text-gray-800 px-5 py-2.5 text-xs font-medium uppercase tracking-widest transition-colors cursor-pointer"
-              >
-                Initiate Return
-              </button>
+              {isReturnEligible(order) ? (
+                <button
+                  type="button"
+                  onClick={() => setSelectedOrder({ ...order, action: "RETURN" })}
+                  className="border border-gray-300 bg-white hover:border-black text-gray-800 px-5 py-2.5 text-xs font-medium uppercase tracking-widest transition-colors cursor-pointer"
+                >
+                  Initiate Return
+                </button>
+              ) : (
+                <div className="relative group inline-block">
+                  <button
+                    type="button"
+                    disabled
+                    className="border border-gray-200 bg-gray-50 text-gray-400 px-5 py-2.5 text-xs font-medium uppercase tracking-widest cursor-not-allowed"
+                  >
+                    Initiate Return
+                  </button>
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block w-48 p-2 bg-black text-white text-[10px] rounded shadow-lg text-center z-10">
+                    Returns can only be initiated within 5 days of delivery.
+                  </div>
+                </div>
+              )}
               <button
                 type="button"
                 onClick={() => setSelectedOrder({ ...order, action: "DETAILS" })}
@@ -339,24 +321,70 @@ export default function OrdersPage() {
                   Our VIP Concierge offers complimentary home pickup for returns within 30 days of delivery.
                   Your return will be processed within 3–5 business days after pickup.
                 </p>
-                <div className="space-y-3">
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs font-semibold uppercase tracking-wider text-gray-700 block mb-2">
+                      Select Items to Return
+                    </label>
+                    <div className="space-y-3">
+                      {selectedOrder.items.map((item) => (
+                        <div key={item.id} className="border border-gray-200 p-3 flex flex-col gap-3">
+                          <div className="flex items-start gap-3">
+                            <input
+                              type="checkbox"
+                              checked={!!returnItems[item.id]}
+                              onChange={(e) => {
+                                setReturnItems(prev => ({ ...prev, [item.id]: e.target.checked }));
+                                if (!e.target.checked) {
+                                  const newReasons = { ...returnReasons };
+                                  delete newReasons[item.id];
+                                  setReturnReasons(newReasons);
+                                }
+                              }}
+                              className="mt-1"
+                            />
+                            <div>
+                              <p className="text-sm font-medium text-gray-800">{item.title}</p>
+                              <p className="text-xs text-gray-500">{item.variant}</p>
+                            </div>
+                          </div>
+                          {returnItems[item.id] && (
+                            <div className="pl-6">
+                              <select
+                                value={returnReasons[item.id] || ""}
+                                onChange={(e) => setReturnReasons(prev => ({ ...prev, [item.id]: e.target.value }))}
+                                className="w-full border border-gray-300 px-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-black rounded-none cursor-pointer"
+                              >
+                                <option value="">Select a reason (Required)</option>
+                                <option>Size issue — too large</option>
+                                <option>Size issue — too small</option>
+                                <option>Different from description</option>
+                                <option>Quality concern / Defective</option>
+                                <option>Item arrived late</option>
+                                <option>Changed my mind</option>
+                              </select>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                   <div>
                     <label className="text-xs font-semibold uppercase tracking-wider text-gray-700 block mb-1">
-                      Reason for Return
+                      Compensation Preference
                     </label>
                     <select
-                      value={returnReason}
-                      onChange={(e) => setReturnReason(e.target.value)}
+                      value={compensationPreference}
+                      onChange={(e) => setCompensationPreference(e.target.value)}
                       className="w-full border border-gray-300 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-black rounded-none cursor-pointer"
                     >
-                      <option value="">Select a reason</option>
-                      <option>Size issue — too large</option>
-                      <option>Size issue — too small</option>
-                      <option>Different from description</option>
-                      <option>Quality concern</option>
-                      <option>Changed my mind</option>
+                      <option value="">Select preference</option>
+                      <option value="REFUND">Refund to Original Payment Method</option>
+                      <option value="REPLACEMENT">Replacement (Subject to availability)</option>
                     </select>
                   </div>
+
                   <div>
                     <label className="text-xs font-semibold uppercase tracking-wider text-gray-700 block mb-1">
                       Additional Notes (Optional)
@@ -372,7 +400,7 @@ export default function OrdersPage() {
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3 pt-2">
                   <a
-                    href={`https://wa.me/919820012345?text=${encodeURIComponent(`Return request for order ${selectedOrder.orderNumber}. Reason: ${returnReason || "Not specified"}. Notes: ${returnNotes || "None"}`)}`}
+                    href={`https://wa.me/919820012345?text=${encodeURIComponent(`Return request for order ${selectedOrder.orderNumber}.`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex-1 flex items-center justify-center gap-2 bg-[#25D366] text-white px-4 py-2.5 text-xs font-medium uppercase tracking-widest hover:bg-[#1ebe5d] transition-colors"
@@ -382,8 +410,13 @@ export default function OrdersPage() {
                   </a>
                   <button
                     type="button"
-                    onClick={() => setSelectedOrder(null)}
-                    className="flex-1 bg-black text-white px-4 py-2.5 text-xs font-medium uppercase tracking-widest hover:bg-gray-800 transition-colors cursor-pointer"
+                    onClick={handleReturnSubmit}
+                    disabled={
+                      !compensationPreference ||
+                      Object.keys(returnItems).filter(id => returnItems[id]).length === 0 ||
+                      Object.keys(returnItems).filter(id => returnItems[id]).some(id => !returnReasons[id])
+                    }
+                    className="flex-1 bg-black text-white px-4 py-2.5 text-xs font-medium uppercase tracking-widest hover:bg-gray-800 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Submit Request
                   </button>
