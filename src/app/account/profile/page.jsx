@@ -401,6 +401,7 @@ export default function ProfilePage() {
         target={otpModal.target}
         type={otpModal.type}
         onVerified={handleOtpVerified}
+        skipSignIn={true}
       />
     </div>
   );

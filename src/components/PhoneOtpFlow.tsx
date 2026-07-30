@@ -23,9 +23,10 @@ interface PhoneOtpFlowProps {
   phone: string;
   onVerified: (phone: string, type: string) => void;
   onClose: () => void;
+  skipSignIn?: boolean;
 }
 
-export default function PhoneOtpFlow({ phone, onVerified, onClose }: PhoneOtpFlowProps) {
+export default function PhoneOtpFlow({ phone, onVerified, onClose, skipSignIn }: PhoneOtpFlowProps) {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
@@ -181,13 +182,15 @@ export default function PhoneOtpFlow({ phone, onVerified, onClose }: PhoneOtpFlo
       // Confirm OTP with Firebase
       await confirmationResult.confirm(fullOtp);
 
-      // Create a NextAuth session so the rest of the app works seamlessly
-      await signIn("otp-verified", {
-        target: phone,
-        type: "phone",
-        verified: "true",
-        redirect: false,
-      });
+      if (!skipSignIn) {
+        // Create a NextAuth session so the rest of the app works seamlessly
+        await signIn("otp-verified", {
+          target: phone,
+          type: "phone",
+          verified: "true",
+          redirect: false,
+        });
+      }
 
       setSuccessMsg("✨ Phone verified successfully!");
       setTimeout(() => {

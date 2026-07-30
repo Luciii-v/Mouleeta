@@ -22,6 +22,7 @@ export default function OtpVerificationModal({
   target,
   type = "email", // "email" | "phone"
   onVerified,
+  skipSignIn = false,
 }) {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
@@ -131,13 +132,15 @@ export default function OtpVerificationModal({
       if (data.success || data.verified) {
         setSuccessMsg("✨ Email verified successfully!");
 
-        // Create a real NextAuth session
-        await signIn("otp-verified", {
-          target,
-          type: "email",
-          verified: "true",
-          redirect: false,
-        });
+        if (!skipSignIn) {
+          // Create a real NextAuth session
+          await signIn("otp-verified", {
+            target,
+            type: "email",
+            verified: "true",
+            redirect: false,
+          });
+        }
 
         setTimeout(() => {
           onVerified(target, "email");
@@ -183,6 +186,7 @@ export default function OtpVerificationModal({
               phone={target}
               onVerified={onVerified}
               onClose={onClose}
+              skipSignIn={skipSignIn}
             />
           </Suspense>
         ) : (
