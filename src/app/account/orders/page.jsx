@@ -15,7 +15,23 @@ export default function OrdersPage() {
   const [compensationPreference, setCompensationPreference] = useState("");
   const [returnNotes, setReturnNotes] = useState("");
 
-  const mockOrders = [];
+  const [orders, setOrders] = useState([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/orders")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setOrders(data);
+        }
+        setIsLoadingOrders(false);
+      })
+      .catch((err) => {
+        console.error("Failed to load orders:", err);
+        setIsLoadingOrders(false);
+      });
+  }, []);
 
   useEffect(() => {
     if (selectedOrder?.action === "TRACKING") {
@@ -35,7 +51,7 @@ export default function OrdersPage() {
     }
   }, [selectedOrder]);
 
-  const filteredOrders = mockOrders.filter((order) => {
+  const filteredOrders = orders.filter((order) => {
     if (activeTab === "PROCESSING") return order.fulfillmentStatus === "UNFULFILLED";
     if (activeTab === "DELIVERED") return order.fulfillmentStatus === "FULFILLED";
     return true;
@@ -109,14 +125,23 @@ export default function OrdersPage() {
                 : "border-transparent text-gray-400 hover:text-gray-700"
             }`}
           >
-            {tab} ({tab === "ALL" ? mockOrders.length : mockOrders.filter(o => tab === "PROCESSING" ? o.fulfillmentStatus === "UNFULFILLED" : o.fulfillmentStatus === "FULFILLED").length})
+            {tab} ({tab === "ALL" ? orders.length : orders.filter(o => tab === "PROCESSING" ? o.fulfillmentStatus === "UNFULFILLED" : o.fulfillmentStatus === "FULFILLED").length})
           </button>
         ))}
       </div>
 
       {/* Order List */}
       <div className="space-y-6">
-        {filteredOrders.map((order) => (
+        {isLoadingOrders ? (
+          <div className="text-center py-12">
+            <span className="text-sm tracking-widest text-gray-500 uppercase">Loading Orders...</span>
+          </div>
+        ) : filteredOrders.length === 0 ? (
+          <div className="text-center py-12 border border-gray-200/80 rounded-sm bg-white">
+            <span className="text-sm tracking-widest text-gray-500 uppercase">No orders found</span>
+          </div>
+        ) : (
+          filteredOrders.map((order) => (
           <div
             key={order.id}
             className="bg-white border border-gray-200/80 p-6 sm:p-8 rounded-sm shadow-xs transition-all hover:border-gray-300"
@@ -230,7 +255,8 @@ export default function OrdersPage() {
               </button>
             </div>
           </div>
-        ))}
+        ))
+        )}
       </div>
 
       {/* Interactive Modal / Detail Overlay */}
@@ -286,7 +312,7 @@ export default function OrdersPage() {
                   <>
                     {/* Amazon-style Progress Timeline Stepper */}
                     <div className="px-2 pt-2 pb-6 border-b border-gray-100">
-                      <OrderTrackingStepper currentStatus={trackingData?.statusId || 4} />
+                      <OrderTrackingStepper currentStatus={trackingData?.statusId || (selectedOrder?.fulfillmentStatus === "FULFILLED" ? (selectedOrder?.deliveryDate ? 5 : 4) : 2)} />
                     </div>
 
                     {/* Detailed Scan Log History */}

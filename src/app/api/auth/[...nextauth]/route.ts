@@ -1,8 +1,8 @@
-import NextAuth from "next-auth";
+import NextAuth, { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-const handler = NextAuth({
+export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
@@ -52,20 +52,25 @@ const handler = NextAuth({
   },
 
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account, profile }) {
+      if (account && profile) {
+        // Expose stable Google account id
+        token.uid = profile.sub;
+      }
       if (user) {
         token.id = user.id;
       }
       return token;
     },
     async session({ session, token }) {
-      if (token?.id && session.user) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (session.user as any).id = token.id as string;
+      if (session.user) {
+        // Set session.user.id to the stable Google id, or custom user id
+        (session.user as any).id = (token.uid || token.id) as string;
       }
       return session;
     },
   },
-});
+};
 
+const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };

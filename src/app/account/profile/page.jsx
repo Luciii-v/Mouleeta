@@ -3,9 +3,11 @@
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import OtpVerificationModal from "@/components/OtpVerificationModal";
+import { useProfile } from "@/hooks/useProfile";
 
 export default function ProfilePage() {
   const { data: session } = useSession();
+  const { profile, loading, saveProfile } = useProfile();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
@@ -20,17 +22,51 @@ export default function ProfilePage() {
   const [verifiedEmail, setVerifiedEmail] = useState("");
   const [verifiedPhone, setVerifiedPhone] = useState("");
 
-  // Populate form from session once available
+  // Populate form from profile once available
   useEffect(() => {
-    if (session?.user) {
-      const nameParts = (session.user.name || "").split(" ");
+    if (profile) {
+      const nameParts = (profile.name || "").split(" ");
       const firstName = nameParts[0] || "";
       const lastName = nameParts.slice(1).join(" ") || "";
-      const email = session.user.email || "";
-      setFormData((prev) => ({ ...prev, firstName, lastName, email }));
+      const email = profile.email || "";
+      let countryCode = "+91";
+      let phone = "";
+      
+      if (profile.phoneNumber) {
+        // extract +91 or +1 etc if present
+        const match = profile.phoneNumber.match(/^(\+\d{1,3})\s?(.*)$/);
+        if (match) {
+          countryCode = match[1];
+          phone = match[2];
+        } else {
+          phone = profile.phoneNumber;
+        }
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        firstName,
+        lastName,
+        email,
+        countryCode,
+        phone,
+        gender: profile.gender || "Prefer not to say",
+        acceptsMarketing: profile.marketingOptIn || false,
+      }));
       setVerifiedEmail(email);
+      setVerifiedPhone(profile.phoneNumber || "");
+    } else if (session?.user && !loading) {
+      // Fallback to session if no profile exists yet (should be seeded, but just in case)
+      const nameParts = (session.user.name || "").split(" ");
+      setFormData((prev) => ({
+        ...prev,
+        firstName: nameParts[0] || "",
+        lastName: nameParts.slice(1).join(" ") || "",
+        email: session.user.email || "",
+      }));
+      setVerifiedEmail(session.user.email || "");
     }
-  }, [session]);
+  }, [profile, session, loading]);
   const [otpModal, setOtpModal] = useState({ isOpen: false, target: "", type: "email" });
 
   const countryCodes = [
@@ -66,20 +102,37 @@ export default function ProfilePage() {
     }));
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     const currentFullPhone = `${formData.countryCode} ${formData.phone}`.trim();
     if (formData.email !== verifiedEmail) {
       setOtpModal({ isOpen: true, target: formData.email, type: "email" });
       return;
     }
-    if (currentFullPhone !== verifiedPhone) {
+    if (currentFullPhone !== verifiedPhone && formData.phone) {
       setOtpModal({ isOpen: true, target: currentFullPhone, type: "phone" });
       return;
     }
+    
     setIsEditing(false);
-    setShowNotification(true);
-    setTimeout(() => setShowNotification(false), 5000);
+    
+    // Save to Firestore Database
+    try {
+      await saveProfile({
+        name: `${formData.firstName} ${formData.lastName}`.trim(),
+        gender: formData.gender,
+        marketingOptIn: formData.acceptsMarketing,
+        // If phone wasn't changed and was previously verified, this just re-saves the same number.
+        // We only save it if it's currently verified (verifiedPhone matches).
+        phoneNumber: currentFullPhone === verifiedPhone ? verifiedPhone : null,
+        phoneVerified: currentFullPhone === verifiedPhone && verifiedPhone.length > 5,
+      });
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 5000);
+    } catch (error) {
+      console.error("Failed to save profile:", error);
+      alert("There was an error saving your profile. Please try again.");
+    }
   };
 
   const handleOtpVerified = (target, type) => {
@@ -91,6 +144,15 @@ export default function ProfilePage() {
   };
 
   const selectedCountry = countryCodes.find((c) => c.code === formData.countryCode) || countryCodes[0];
+
+  if (loading) {
+    return (
+      <div className="space-y-8 animate-pulse">
+        <div className="h-20 bg-gray-100 rounded-sm w-full"></div>
+        <div className="h-64 bg-gray-100 rounded-sm w-full"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
