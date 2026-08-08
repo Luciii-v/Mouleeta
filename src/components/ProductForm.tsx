@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { useCartStore } from '@/store/useCartStore';
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from 'framer-motion';
 import MagneticButton from '@/components/MagneticButton';
 
@@ -48,6 +50,8 @@ interface ProductFormProps {
 }
 
 export default function ProductForm({ product }: ProductFormProps) {
+  const { status } = useSession();
+  const router = useRouter();
   const addToCart = useCartStore((state) => state.addToCart);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
 
@@ -57,6 +61,10 @@ export default function ProductForm({ product }: ProductFormProps) {
   );
 
   const handleAddToCart = () => {
+    if (status !== "authenticated") {
+      router.push("/account/login");
+      return;
+    }
     if (!selectedVariant) return;
     const price = selectedVariant?.price?.amount 
       || selectedVariant?.priceRange?.minVariantPrice?.amount 

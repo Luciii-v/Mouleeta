@@ -5,6 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useCartStore } from '@/store/useCartStore';
 import { ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import WishlistButton from '@/components/WishlistButton';
 
 interface CarouselProduct {
@@ -27,6 +29,8 @@ interface ProductCarouselProps {
 }
 
 export default function ProductCarousel({ products }: ProductCarouselProps) {
+  const { status } = useSession();
+  const router = useRouter();
   const addToCart = useCartStore((state) => state.addToCart);
   const carouselRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -199,6 +203,10 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
                     onClick={(e) => {
                       e.stopPropagation();
                       e.preventDefault();
+                      if (status !== "authenticated") {
+                        router.push("/account/login");
+                        return;
+                      }
                       addToCart({
                         id: product.id || `prod-${index}`,
                         variantId: (Array.isArray(product.variants) ? product.variants[0]?.id : product.variants?.edges?.[0]?.node?.id) || product.id || `prod-${index}`,

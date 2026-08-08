@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import { Heart } from 'lucide-react';
 import { useWishlistStore, WishlistItem } from '@/store/useWishlistStore';
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 interface WishlistButtonProps {
   item: WishlistItem;
@@ -13,6 +15,8 @@ interface WishlistButtonProps {
 export default function WishlistButton({ item, className = "", size = 18, showText = false }: WishlistButtonProps) {
   const [mounted, setMounted] = useState(false);
   const { isInWishlist, toggleWishlist } = useWishlistStore();
+  const { status } = useSession();
+  const router = useRouter();
 
   useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 0);
@@ -36,6 +40,12 @@ export default function WishlistButton({ item, className = "", size = 18, showTe
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    if (status !== "authenticated") {
+      router.push("/account/login");
+      return;
+    }
+    
     toggleWishlist(item);
   };
 

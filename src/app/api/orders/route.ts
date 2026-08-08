@@ -49,6 +49,9 @@ export async function GET(request: Request) {
                     title
                     variantTitle
                     quantity
+                    image {
+                      url
+                    }
                     originalTotalSet {
                       shopMoney {
                         amount
@@ -130,6 +133,8 @@ export async function GET(request: Request) {
         title: itemNode.title,
         variant: itemNode.variantTitle || "Default Title",
         quantity: itemNode.quantity,
+        image: itemNode.image?.url || null,
+        options: itemNode.variant?.selectedOptions || [],
         price: formatCurrency(itemNode.originalTotalSet?.shopMoney?.amount || "0", itemNode.originalTotalSet?.shopMoney?.currencyCode || "INR")
       }));
 

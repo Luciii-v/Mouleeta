@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCartStore } from '@/store/useCartStore';
 import { ShoppingBag, ArrowLeft, Truck, ChevronDown, ChevronUp, Leaf } from 'lucide-react';
 import Link from 'next/link';
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import MagneticButton from '@/components/MagneticButton';
 import WishlistButton from '@/components/WishlistButton';
 import FitConciergeModal from '@/components/FitConciergeModal';
@@ -72,6 +74,8 @@ interface ProductDetailProps {
 }
 
 export default function ProductDetail({ product, allProducts }: ProductDetailProps) {
+  const { status } = useSession();
+  const router = useRouter();
   const addToCart = useCartStore((state) => state.addToCart);
   
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -231,6 +235,10 @@ export default function ProductDetail({ product, allProducts }: ProductDetailPro
   };
 
   const handleAddToBag = () => {
+    if (status !== "authenticated") {
+      router.push("/account/login");
+      return;
+    }
     if (!selectedVariant) {
       setShowSizeWarning(true);
       return;

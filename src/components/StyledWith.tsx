@@ -3,6 +3,8 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCartStore } from '@/store/useCartStore';
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { ShoppingBag, Sparkles, ArrowRight } from 'lucide-react';
 import WishlistButton from '@/components/WishlistButton';
 import { mockProducts } from '@/lib/dummyData';
@@ -40,6 +42,8 @@ const recommendations = [
 ];
 
 export default function StyledWith({ currentProductId, allProducts }: StyledWithProps) {
+  const { status } = useSession();
+  const router = useRouter();
   const { addToCart } = useCartStore();
 
   let finalRecommendations = recommendations;
@@ -132,6 +136,10 @@ export default function StyledWith({ currentProductId, allProducts }: StyledWith
             <div className="p-5 pt-0 flex gap-2">
               <button
                 onClick={() => {
+                  if (status !== "authenticated") {
+                    router.push("/account/login");
+                    return;
+                  }
                   addToCart({
                     id: item.id,
                     variantId: item.id,

@@ -7,8 +7,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { X, ShoppingBag } from 'lucide-react';
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function MemoryDock() {
+  const { status } = useSession();
+  const router = useRouter();
   const { items, removeRecentItem, clearMemory } = useMemoryStore();
   const addToCart = useCartStore((state) => state.addToCart);
   const isCartOpen = useCartStore((state) => state.isOpen);
@@ -19,6 +23,12 @@ export default function MemoryDock() {
   const handleAdd = (item: any, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    if (status !== "authenticated") {
+      router.push("/account/login");
+      return;
+    }
+    
     addToCart({
       id: item.id,
       variantId: item.id,

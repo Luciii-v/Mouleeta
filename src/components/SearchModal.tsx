@@ -1,11 +1,13 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, ArrowRight, ShoppingBag, Sparkles } from 'lucide-react';
+import { Search, X, Loader2, ArrowRight, ShoppingBag, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { mockProducts } from '@/lib/dummyData';
 import { useCartStore } from '@/store/useCartStore';
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import WishlistButton from '@/components/WishlistButton';
 
 interface SearchModalProps {
@@ -61,6 +63,8 @@ const trendingTags = [
 ];
 
 export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
+  const { status } = useSession();
+  const router = useRouter();
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const { addToCart } = useCartStore();
@@ -277,6 +281,10 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
                             <div className="flex gap-2">
                               <button
                                 onClick={() => {
+                                  if (status !== "authenticated") {
+                                    router.push("/account/login");
+                                    return;
+                                  }
                                   addToCart({
                                     id: item.id,
                                     variantId: item.id,

@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { useCartStore } from '@/store/useCartStore';
 import { useMemoryStore } from '@/store/useMemoryStore';
 import { ShoppingBag, Pin } from 'lucide-react';
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import WishlistButton from '@/components/WishlistButton';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 
@@ -34,6 +36,8 @@ const LOCAL_PRODUCT_SIZES: Record<string, string[]> = {
 };
 
 export default function ProductCard({ product, lightBg = true }: ProductCardProps) {
+  const { status } = useSession();
+  const router = useRouter();
   const addToCart = useCartStore((state) => state.addToCart);
   const addRecentItem = useMemoryStore((state) => state.addRecentItem);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -97,6 +101,11 @@ export default function ProductCard({ product, lightBg = true }: ProductCardProp
   const firstSentence = product.description?.split('.')[0] || 'Luxury Linen Piece';
 
   const handleQuickAdd = (size: string) => {
+    if (status !== "authenticated") {
+      router.push("/account/login");
+      return;
+    }
+
     let variantId = product.variants?.edges?.[0]?.node?.id || product.id;
     
     if (hasShopifyVariants) {

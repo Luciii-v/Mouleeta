@@ -72,6 +72,10 @@ export default function Header() {
   const textColorClass = isTransparent ? "text-white/80 hover:text-white" : "text-graphite hover:text-onyx";
   const iconColorClass = isTransparent ? "text-white hover:text-white/80" : "text-onyx hover:opacity-60";
 
+  if (pathname === '/account/login' || pathname === '/account/register') {
+    return null;
+  }
+
   return (
     <header 
       className={`fixed top-0 z-40 w-full transition-colors duration-500 ease-out select-none ${
