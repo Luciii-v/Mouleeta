@@ -6,7 +6,7 @@ import { adminDb } from "@/lib/firebase-admin";
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    // @ts-ignore
+    // @ts-expect-error missing type
     const uid = session?.user?.id;
 
     if (!uid) {
@@ -42,7 +42,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    // @ts-ignore
+    // @ts-expect-error missing type
     const uid = session?.user?.id;
 
     if (!uid) {
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     // Whitelist allowed fields to prevent client overriding protected fields like `phoneVerified`
-    const allowedUpdates: any = {
+    const allowedUpdates: Record<string, unknown> = {
       updatedAt: new Date().toISOString(),
     };
 

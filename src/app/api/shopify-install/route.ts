@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-export async function GET(request: Request) {
+export async function GET() {
   // 1. Get Client ID from env
   const clientId = process.env.SHOPIFY_CLIENT_ID;
   const shop = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || "kvd0hr-0x.myshopify.com";

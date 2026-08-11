@@ -1,17 +1,18 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCartStore } from '@/store/useCartStore';
 import { useMemoryStore } from '@/store/useMemoryStore';
-import { ShoppingBag, Pin } from 'lucide-react';
+import { Pin } from 'lucide-react';
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import WishlistButton from '@/components/WishlistButton';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 
 interface ProductCardProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   product: any;
   lightBg?: boolean;
 }
@@ -42,45 +43,43 @@ export default function ProductCard({ product, lightBg = true }: ProductCardProp
   const addRecentItem = useMemoryStore((state) => state.addRecentItem);
   const cardRef = useRef<HTMLDivElement>(null);
   
-  // Extract variant options
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const allVariants = product.variants?.edges.map(({ node }: any) => node) || [];
   
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getOptionValue = (variant: any, name: string) => {
     return variant.selectedOptions?.find(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (opt: any) => opt.name.toLowerCase() === name.toLowerCase()
     )?.value || '';
   };
 
-  // Check if Shopify has real variants
   const hasShopifyVariants = allVariants.length > 1 || (allVariants[0] && allVariants[0].title !== 'Default Title');
 
-  // Find unique color and size options
   const allColors = (hasShopifyVariants 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ? Array.from(new Set(allVariants.map((v: any) => getOptionValue(v, 'color')).filter(Boolean)))
     : (LOCAL_PRODUCT_COLORS[product.handle] || [])) as string[];
 
   const allSizes = (hasShopifyVariants 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ? Array.from(new Set(allVariants.map((v: any) => getOptionValue(v, 'size')).filter(Boolean)))
     : (LOCAL_PRODUCT_SIZES[product.handle] || [])) as string[];
 
-  // Selected State on Card
   const [selectedColor, setSelectedColor] = useState<string>(allColors[0] || '');
   const [isAdded, setIsAdded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
   const rawImages = (product.images?.edges 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ? product.images.edges.map((e: any) => e.node.url) 
     : [product.featuredImage?.url || '/placeholder.png']) as string[];
 
-  // Group images by selected color
   const getImagesForColor = (color: string) => {
     const colorLower = color.toLowerCase();
-    
-    // First, try to see if the URL actually contains the color name (e.g., 'green' or 'pink')
     const explicitMatches = rawImages.filter(url => url.toLowerCase().includes(colorLower));
     if (explicitMatches.length > 0) return explicitMatches;
 
-    // Fallback for mock data where only 'pink' is labeled in the URL and the rest are the alternate color
     if (colorLower === 'pink') {
       const pinkImages = rawImages.filter(url => url.toLowerCase().includes('pink'));
       return pinkImages.length > 0 ? pinkImages : rawImages;
@@ -92,7 +91,6 @@ export default function ProductCard({ product, lightBg = true }: ProductCardProp
 
   const colorImages = allColors.length > 0 ? getImagesForColor(selectedColor) : rawImages;
   const primaryImage = colorImages[0] || rawImages[0] || '/placeholder.png';
-  const secondaryImage = colorImages[1] || undefined;
 
   const price = product.priceRange?.minVariantPrice 
     ? Math.round(parseFloat(product.priceRange.minVariantPrice.amount)) 
@@ -110,6 +108,7 @@ export default function ProductCard({ product, lightBg = true }: ProductCardProp
     
     if (hasShopifyVariants) {
       const match = allVariants.find(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (v: any) => getOptionValue(v, 'color') === selectedColor && getOptionValue(v, 'size') === size
       );
       if (match) {

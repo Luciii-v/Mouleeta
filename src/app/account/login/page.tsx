@@ -1,13 +1,13 @@
 "use client";
 import React, { useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
+
 import { signIn } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+
 
 export default function LoginPage() {
-  const router = useRouter();
+
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [legalModalOpen, setLegalModalOpen] = useState(false);
   const [legalType, setLegalType] = useState("terms");

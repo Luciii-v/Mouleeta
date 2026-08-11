@@ -49,7 +49,7 @@ export default function AddressesPage() {
         } else {
           setPinStatus("PIN Code not found. Please verify or enter City & State manually.");
         }
-      } catch (err) {
+      } catch {
         setPinStatus("Could not fetch PIN details.");
       } finally {
         setIsLocating(false);
@@ -94,9 +94,9 @@ export default function AddressesPage() {
           const [esriRes, bdcRes, nomRes] = await Promise.all([esriPromise, bdcPromise, nomPromise]);
 
           const detectedCity =
-            esriRes?.City ||
-            esriRes?.MetroArea ||
-            esriRes?.Subregion ||
+            esriRes?.address?.City ||
+            esriRes?.address?.MetroArea ||
+            esriRes?.address?.Subregion ||
             bdcRes?.city ||
             bdcRes?.locality ||
             nomRes?.address?.city ||
@@ -105,21 +105,21 @@ export default function AddressesPage() {
             "";
 
           const detectedState =
-            esriRes?.Region ||
+            esriRes?.address?.Region ||
             bdcRes?.principalSubdivision ||
             nomRes?.address?.state ||
             "";
 
           const detectedZip =
-            esriRes?.Postal ||
+            esriRes?.address?.Postal ||
             bdcRes?.postcode ||
             nomRes?.address?.postcode ||
             "";
 
           const detectedRoad =
-            esriRes?.Address ||
-            esriRes?.District ||
-            esriRes?.PlaceName ||
+            esriRes?.address?.Address ||
+            esriRes?.address?.District ||
+            esriRes?.address?.PlaceName ||
             nomRes?.address?.road ||
             nomRes?.address?.suburb ||
             "";
@@ -133,13 +133,13 @@ export default function AddressesPage() {
           }));
 
           setPinStatus(`✨ Auto-captured location: ${detectedCity}${detectedState ? `, ${detectedState}` : ""}${detectedZip ? ` (${detectedZip})` : ""}`);
-        } catch (err) {
+        } catch {
           setPinStatus("Could not detect location details.");
         } finally {
           setIsLocating(false);
         }
       },
-      (err) => {
+      () => {
         setIsLocating(false);
         setPinStatus("Location permission denied or unavailable.");
       },
@@ -331,7 +331,7 @@ export default function AddressesPage() {
         }
 
         setSuggestions(deduplicated);
-      } catch (err) {
+      } catch {
         setSuggestions([]);
       } finally {
         setIsSearching(false);

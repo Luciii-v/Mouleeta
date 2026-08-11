@@ -1,10 +1,10 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, Loader2, ArrowRight, ShoppingBag, Sparkles } from 'lucide-react';
+import { X, Search, ArrowRight, Sparkles, ShoppingBag } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { mockProducts } from '@/lib/dummyData';
+
 import { useCartStore } from '@/store/useCartStore';
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -17,7 +17,7 @@ interface SearchModalProps {
 
 // Expanded editorial product database for rich live search
 const searchDatabase = [
-  ...mockProducts,
+
   {
     id: "silk-georgette-evening-gown",
     title: "Silk Georgette Evening Gown",
@@ -69,6 +69,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { addToCart } = useCartStore();
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [products, setProducts] = useState<any[]>([]);
 
   // Handle Escape key and auto-focus
@@ -96,6 +97,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 slug: p.handle,
                 price: Math.round(parseFloat(p.priceRange?.minVariantPrice?.amount || '0')),
                 description: p.description || '',
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 images: p.images?.edges?.map((e: any) => e.node.url) || ['/placeholder.png'],
                 subCategoryId: p.handle.includes('dress') ? 'dresses' : p.handle.includes('top') || p.handle.includes('shirt') ? 'shirts' : p.handle.includes('bag') ? 'accessories' : 'dresses'
               }))

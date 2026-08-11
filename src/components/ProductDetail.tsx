@@ -41,6 +41,7 @@ interface VariantNode {
 }
 
 interface ProductDetailProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   allProducts?: any[];
   product: {
     id: string;

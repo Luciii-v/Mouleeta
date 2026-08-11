@@ -65,7 +65,7 @@ export async function GET(request: Request) {
     return new NextResponse(html, {
       headers: { "Content-Type": "text/html" },
     });
-  } catch (error: any) {
-    return NextResponse.json({ error: "Exception occurred", message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ error: "Exception occurred", message: (error as Error).message }, { status: 500 });
   }
 }

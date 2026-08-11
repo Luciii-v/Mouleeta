@@ -17,11 +17,16 @@ export default async function Home() {
           title: p.title,
           handle: p.handle,
           description: p.description,
-          priceRange: p.priceRange,
+          priceRange: {
+            minVariantPrice: {
+              amount: p.priceRange.minVariantPrice.amount,
+              currencyCode: p.priceRange.minVariantPrice.currencyCode || 'INR'
+            }
+          },
           featuredImage: p.images?.edges?.[0]?.node ? { url: p.images.edges[0].node.url } : undefined,
           variants: p.variants
         }
-      })) as any;
+      }));
     }
 
     return (

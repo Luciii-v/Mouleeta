@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { useCartStore } from '@/store/useCartStore';
 import { useRouter } from 'next/navigation';
-import { createCart, addToCart } from '@/lib/shopify';
+import { useSession } from 'next-auth/react';
+
 
 interface UpsellProductEdge {
   node: {
@@ -23,6 +24,7 @@ interface CartDrawerProps {
 export default function CartDrawer({ upsellProducts = [] }: CartDrawerProps) {
   const { cart, isOpen, closeCart, removeFromCart } = useCartStore();
   const router = useRouter();
+  const { data: session } = useSession();
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleCheckout = async () => {
@@ -42,7 +44,7 @@ export default function CartDrawer({ upsellProducts = [] }: CartDrawerProps) {
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lines })
+        body: JSON.stringify({ lines, email: session?.user?.email })
       });
 
       const data = await response.json();

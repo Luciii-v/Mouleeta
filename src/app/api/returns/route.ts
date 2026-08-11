@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { orderId, items, compensationPreference, notes } = body;
+    const { orderId, items, compensationPreference } = body;
 
     if (!orderId || !items || items.length === 0 || !compensationPreference) {
       return NextResponse.json(
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     let triageDecision = "MANUAL_REVIEW";
     let aiReasoning = "Flagged for manual review by default.";
 
-    const allReasons = items.map((i: any) => i.reason);
+    const allReasons = items.map((i: { reason: string }) => i.reason);
     
     if (allReasons.includes("Quality concern / Defective") || allReasons.includes("Different from description")) {
       triageDecision = "FLAGGED_FOR_REVIEW";

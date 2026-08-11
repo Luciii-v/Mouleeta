@@ -7,7 +7,8 @@ import { motion } from 'framer-motion';
 import ProductCard from '@/components/ProductCard';
 
 interface CollectionProps {
-  products: any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  products: { node: any }[];
 }
 
 export default function Collection({ products }: CollectionProps) {

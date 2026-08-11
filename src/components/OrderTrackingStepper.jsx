@@ -18,7 +18,7 @@ export default function OrderTrackingStepper({ currentStatus = 1 }) {
         {steps.map((step, index) => {
           const isCompleted = step.id < currentStatus;
           const isActive = step.id === currentStatus;
-          const isFuture = step.id > currentStatus;
+
           const isLast = index === steps.length - 1;
 
           return (

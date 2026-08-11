@@ -19,12 +19,13 @@ export function useProfile() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // @ts-ignore
+  // @ts-expect-error NextAuth session user types don't include id by default
   const uid = session?.user?.id;
 
   useEffect(() => {
     if (status === "loading") return;
     if (!uid) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(false);
       return;
     }

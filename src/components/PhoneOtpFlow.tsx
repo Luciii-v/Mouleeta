@@ -14,9 +14,9 @@
  * Requires Phone Auth enabled in Firebase Console → Authentication → Sign-in method
  */
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { signIn } from "next-auth/react";
-import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from "firebase/auth";
 import { firebaseAuth } from "@/lib/firebase";
 
 interface PhoneOtpFlowProps {
@@ -33,7 +33,7 @@ export default function PhoneOtpFlow({ phone, onVerified, onClose, skipSignIn }:
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const [countdown, setCountdown] = useState(0);
-  const [confirmationResult, setConfirmationResult] = useState<any>(null);
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const [recaptchaReady, setRecaptchaReady] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const recaptchaContainerRef = useRef<HTMLDivElement>(null);
@@ -57,7 +57,9 @@ export default function PhoneOtpFlow({ phone, onVerified, onClose, skipSignIn }:
     }
     
     // Return existing verifier to prevent internal Firebase state errors
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if ((window as any).recaptchaVerifier) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (window as any).recaptchaVerifier;
     }
 
@@ -69,6 +71,7 @@ export default function PhoneOtpFlow({ phone, onVerified, onClose, skipSignIn }:
           setError("reCAPTCHA expired. Please request a new code.");
         },
       });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).recaptchaVerifier = verifier;
       return verifier;
     } catch (err) {
@@ -80,33 +83,7 @@ export default function PhoneOtpFlow({ phone, onVerified, onClose, skipSignIn }:
 
   const sendOtpCalledRef = useRef(false);
 
-  useEffect(() => {
-    // Initial setup
-    const v = initRecaptcha();
-    if (v) setRecaptchaReady(true);
-
-    return () => {
-      // Intentionally not clearing the verifier here because in React 18 Strict Mode,
-      // unmounting and clearing it while signInWithPhoneNumber is in-flight causes a crash.
-    };
-  }, []);
-
-  // Auto-send OTP when component mounts and reCAPTCHA is ready
-  useEffect(() => {
-    if (recaptchaReady && phone && !sendOtpCalledRef.current) {
-      sendOtpCalledRef.current = true;
-      sendOtp();
-    }
-  }, [recaptchaReady, phone]);
-
-  // Countdown timer
-  useEffect(() => {
-    if (countdown <= 0) return;
-    const t = setInterval(() => setCountdown((c) => c - 1), 1000);
-    return () => clearInterval(t);
-  }, [countdown]);
-
-  const sendOtp = async () => {
+  const sendOtp = useCallback(async () => {
     setSending(true);
     setError("");
     try {
@@ -119,6 +96,7 @@ export default function PhoneOtpFlow({ phone, onVerified, onClose, skipSignIn }:
       setConfirmationResult(result);
       setCountdown(30);
       setTimeout(() => inputRefs.current[0]?.focus(), 150);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error("Firebase phone auth error:", err);
       if (err.code === "auth/invalid-phone-number") {
@@ -137,8 +115,35 @@ export default function PhoneOtpFlow({ phone, onVerified, onClose, skipSignIn }:
     } finally {
       setSending(false);
     }
-  };
+  }, [phone]);
 
+  useEffect(() => {
+    // Initial setup
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    const v = initRecaptcha();
+    if (v) setRecaptchaReady(true);
+
+    return () => {
+      // Intentionally not clearing the verifier here because in React 18 Strict Mode,
+      // unmounting and clearing it while signInWithPhoneNumber is in-flight causes a crash.
+    };
+  }, []);
+
+  // Auto-send OTP when component mounts and reCAPTCHA is ready
+  useEffect(() => {
+    if (recaptchaReady && phone && !sendOtpCalledRef.current) {
+      sendOtpCalledRef.current = true;
+      sendOtp();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recaptchaReady, phone]);
+
+  // Countdown timer
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const t = setInterval(() => setCountdown((c) => c - 1), 1000);
+    return () => clearInterval(t);
+  }, [countdown]);
   const handleChange = (index: number, value: string) => {
     if (isNaN(Number(value))) return;
     const newOtp = [...otp];
@@ -197,6 +202,7 @@ export default function PhoneOtpFlow({ phone, onVerified, onClose, skipSignIn }:
         onVerified(phone, "phone");
         onClose();
       }, 1200);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       if (err.code === "auth/invalid-verification-code") {
         setError("Invalid code. Please check and try again.");

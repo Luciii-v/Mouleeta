@@ -3,7 +3,7 @@ import { createCart, addToCart } from '@/lib/shopify';
 
 export async function POST(req: Request) {
   try {
-    const { lines } = await req.json();
+    const { lines, email } = await req.json();
 
     if (!lines || !Array.isArray(lines) || lines.length === 0) {
       return NextResponse.json(
@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     }
 
     // 1. Create a fresh Shopify cart session on the server
-    const newCart = await createCart();
+    const newCart = await createCart(email);
     if (!newCart) {
       return NextResponse.json(
         { error: 'Failed to create Shopify checkout session' },

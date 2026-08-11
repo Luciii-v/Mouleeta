@@ -7,16 +7,17 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { ShoppingBag, Sparkles, ArrowRight } from 'lucide-react';
 import WishlistButton from '@/components/WishlistButton';
-import { mockProducts } from '@/lib/dummyData';
+
 
 interface StyledWithProps {
   currentProductId?: string;
   currentCategory?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   allProducts?: any[];
 }
 
 const recommendations = [
-  ...mockProducts,
+
   {
     id: "raw-silk-evening-coat",
     title: "Raw Silk Evening Coat",
@@ -48,17 +49,22 @@ export default function StyledWith({ currentProductId, allProducts }: StyledWith
 
   let finalRecommendations = recommendations;
   if (allProducts && allProducts.length > 0) {
+
     finalRecommendations = allProducts.map(p => ({
       id: p.id,
       title: p.title,
       slug: p.handle,
       price: Math.round(parseFloat(p.priceRange?.minVariantPrice?.amount || '0')),
       description: p.description || '',
-      images: p.images?.edges?.map((e: any) => e.node.url) || ['/placeholder.png'],
-      variants: p.variants?.edges?.map((e: any) => ({ id: e.node.id })) || [{ id: p.id }],
+  
+      images: p.images?.edges?.map((e: { node: { url: string } }) => e.node.url) || ['/placeholder.png'],
+  
+      variants: p.variants?.edges?.map((e: { node: { id: string } }) => ({ id: e.node.id })) || [{ id: p.id }],
       categoryId: 'women',
+  
       subCategoryId: p.handle.includes('dress') ? 'dresses' : p.handle.includes('top') || p.handle.includes('shirt') ? 'shirts' : p.handle.includes('bag') ? 'accessories' : 'dresses',
-      inStock: p.variants?.edges?.some((e: any) => e.node.availableForSale) ?? true
+  
+      inStock: p.variants?.edges?.some((e: { node: { availableForSale: boolean } }) => e.node.availableForSale) ?? true
     }));
   }
 

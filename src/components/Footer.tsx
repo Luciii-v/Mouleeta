@@ -16,12 +16,27 @@ export default function Footer() {
     return null;
   }
 
-  const handleSubscribe = (e: React.FormEvent) => {
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !email.includes('@')) return;
-    // TODO: Wire to Mailchimp/Klaviyo/Shopify Email API
-    setSubscribed(true);
-    setEmail('');
+
+    try {
+      const res = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      if (res.ok) {
+        setSubscribed(true);
+        setEmail('');
+      } else {
+        const data = await res.json();
+        alert(`Could not subscribe: ${data.error || 'Server error'}`);
+      }
+    } catch (err) {
+      console.error('Newsletter error:', err);
+      alert('Could not subscribe due to a network error.');
+    }
   };
 
   // We define the parent variant to stagger the children by 0.2 seconds

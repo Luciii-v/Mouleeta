@@ -65,6 +65,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         // Set session.user.id to the stable Google id, or custom user id
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (session.user as any).id = (token.uid || token.id) as string;
       }
       return session;

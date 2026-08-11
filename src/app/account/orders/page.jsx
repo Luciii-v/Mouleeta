@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+
 import OrderTrackingStepper from "@/components/OrderTrackingStepper";
 import OrderBreakdownModal from "@/components/OrderBreakdownModal";
 
 export default function OrdersPage() {
-  const { data: session } = useSession();
+
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [activeTab, setActiveTab] = useState("ALL");
   const [trackingData, setTrackingData] = useState(null);
@@ -36,7 +36,7 @@ export default function OrdersPage() {
 
   useEffect(() => {
     if (selectedOrder?.action === "TRACKING") {
-      setIsLoadingTracking(true);
+      setTimeout(() => setIsLoadingTracking(true), 0);
       fetch(`/api/track?awb=${selectedOrder.trackingNumber}`)
         .then((res) => res.json())
         .then((data) => {
@@ -48,7 +48,7 @@ export default function OrdersPage() {
           setIsLoadingTracking(false);
         });
     } else {
-      setTrackingData(null);
+      setTimeout(() => setTrackingData(null), 0);
     }
   }, [selectedOrder]);
 

@@ -20,7 +20,7 @@ export default function MemoryDock() {
 
   if (items.length === 0) return null;
 
-  const handleAdd = (item: any, e: React.MouseEvent) => {
+  const handleAdd = (item: { id: string; title: string; price: number; image: string }, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     

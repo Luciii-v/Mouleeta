@@ -15,9 +15,13 @@ if (!getApps().length) {
       );
     }
 
-    initializeApp({
-      credential: serviceAccount ? cert(serviceAccount) : undefined,
-    });
+    if (serviceAccount) {
+      initializeApp({
+        credential: cert(serviceAccount),
+      });
+    } else {
+      initializeApp();
+    }
   } catch (error) {
     console.error("Firebase admin initialization error", error);
   }

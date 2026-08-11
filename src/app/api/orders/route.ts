@@ -2,7 +2,30 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-export async function GET(request: Request) {
+interface ShopifyLineItemNode {
+  id: string;
+  title: string;
+  variantTitle: string | null;
+  quantity: number;
+  image: { url: string } | null;
+  variant?: { selectedOptions: Array<{ name: string; value: string }> };
+  originalTotalSet?: {
+    shopMoney?: { amount: string; currencyCode: string };
+  };
+}
+
+interface ShopifyOrderNode {
+  id: string;
+  name: string;
+  createdAt: string;
+  displayFulfillmentStatus: string;
+  displayFinancialStatus: string;
+  totalPriceSet: { shopMoney: { amount: string; currencyCode: string } };
+  fulfillments: Array<{ trackingInfo: Array<{ number: string; company: string }>; deliveredAt: string | null }>;
+  lineItems: { edges: Array<{ node: ShopifyLineItemNode }> };
+}
+
+export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     if (!session || !session.user || !session.user.email) {
@@ -95,7 +118,7 @@ export async function GET(request: Request) {
     const ordersData = json.data?.orders?.edges || [];
 
     // Map to the format expected by the frontend
-    const formattedOrders = ordersData.map(({ node }: any) => {
+    const formattedOrders = ordersData.map(({ node }: { node: ShopifyOrderNode }) => {
       // Find the first fulfillment that has tracking info, if any
       const fulfillments = node.fulfillments || [];
       let trackingNumber = null;
@@ -128,7 +151,7 @@ export async function GET(request: Request) {
         statusLabel = "Processing";
       }
 
-      const items = (node.lineItems?.edges || []).map(({ node: itemNode }: any) => ({
+      const items = (node.lineItems?.edges || []).map(({ node: itemNode }: { node: ShopifyLineItemNode }) => ({
         id: itemNode.id,
         title: itemNode.title,
         variant: itemNode.variantTitle || "Default Title",
@@ -154,7 +177,7 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.json(formattedOrders);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error in /api/orders:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }

@@ -43,28 +43,32 @@ export default function ProfilePage() {
         }
       }
 
-      setFormData((prev) => ({
-        ...prev,
-        firstName,
-        lastName,
-        email,
-        countryCode,
-        phone,
-        gender: profile.gender || "Prefer not to say",
-        acceptsMarketing: profile.marketingOptIn || false,
-      }));
-      setVerifiedEmail(email);
-      setVerifiedPhone(profile.phoneNumber || "");
+      setTimeout(() => {
+        setFormData((prev) => ({
+          ...prev,
+          firstName,
+          lastName,
+          email,
+          countryCode,
+          phone,
+          gender: profile.gender || "Prefer not to say",
+          acceptsMarketing: profile.marketingOptIn || false,
+        }));
+        setVerifiedEmail(email);
+        setVerifiedPhone(profile.phoneNumber || "");
+      }, 0);
     } else if (session?.user && !loading) {
       // Fallback to session if no profile exists yet (should be seeded, but just in case)
       const nameParts = (session.user.name || "").split(" ");
-      setFormData((prev) => ({
-        ...prev,
-        firstName: nameParts[0] || "",
-        lastName: nameParts.slice(1).join(" ") || "",
-        email: session.user.email || "",
-      }));
-      setVerifiedEmail(session.user.email || "");
+      setTimeout(() => {
+        setFormData((prev) => ({
+          ...prev,
+          firstName: nameParts[0] || "",
+          lastName: nameParts.slice(1).join(" ") || "",
+          email: session.user.email || "",
+        }));
+        setVerifiedEmail(session.user.email || "");
+      }, 0);
     }
   }, [profile, session, loading]);
   const [otpModal, setOtpModal] = useState({ isOpen: false, target: "", type: "email" });
@@ -96,7 +100,7 @@ export default function ProfilePage() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
+      setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));

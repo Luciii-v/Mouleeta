@@ -513,8 +513,19 @@ export async function getProductsByCategory(
 /**
  * Creates a new Shopify checkout cart session
  */
-export async function createCart(): Promise<{ id: string; checkoutUrl: string } | null> {
-  const query = `
+export async function createCart(email?: string): Promise<{ id: string; checkoutUrl: string } | null> {
+  const query = email
+    ? `
+    mutation CreateCart {
+      cartCreate(input: { buyerIdentity: { email: "${email}" } }) {
+        cart {
+          id
+          checkoutUrl
+        }
+      }
+    }
+  `
+    : `
     mutation CreateCart {
       cartCreate {
         cart {

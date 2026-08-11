@@ -62,6 +62,7 @@ export default function OtpVerificationModal({
 
   useEffect(() => {
     if (isOpen && type === "email") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOtp(["", "", "", "", "", ""]);
       setError("");
       setSuccessMsg("");
@@ -77,6 +78,7 @@ export default function OtpVerificationModal({
       setSuccessMsg("");
       setDevOtp("");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, target, type]);
 
   useEffect(() => {

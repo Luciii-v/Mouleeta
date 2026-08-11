@@ -20,48 +20,7 @@ interface TrackingStatus {
   address: string;
 }
 
-const mockOrders: Record<string, TrackingStatus> = {
-  "MOU-8942": {
-    orderNumber: "MOU-8942",
-    date: "July 4, 2026",
-    status: "in_transit",
-    carrier: "Bluedart Luxury Express",
-    trackingCode: "BD-9942018475-IN",
-    estimatedDelivery: "Tomorrow, July 7 by 6:00 PM",
-    items: [
-      {
-        title: "The Velvet Noir Evening Gown",
-        size: "Size M",
-        price: 34500,
-        image: "/velvet-dress.png"
-      }
-    ],
-    address: "A-14, Amrita Shergill Marg, New Delhi, 110003"
-  },
-  "MOU-7105": {
-    orderNumber: "MOU-7105",
-    date: "June 28, 2026",
-    status: "delivered",
-    carrier: "DHL Priority Atelier",
-    trackingCode: "DHL-48829104-IN",
-    estimatedDelivery: "Delivered on July 1, 2026 at 3:15 PM",
-    items: [
-      {
-        title: "Hand-Pleated Silk Georgette Dress",
-        size: "Size S",
-        price: 42000,
-        image: "/georgette-dress.png"
-      },
-      {
-        title: "Raw Silk Evening Coat",
-        size: "Size S",
-        price: 28500,
-        image: "/trousers.png"
-      }
-    ],
-    address: "Palmera Penthouse, Worli Sea Face, Mumbai, 400030"
-  }
-};
+// Mock orders are removed, using live API
 
 export default function TrackOrderPage() {
   const [orderInput, setOrderInput] = useState("");
@@ -75,24 +34,35 @@ export default function TrackOrderPage() {
   const [selectedSize, setSelectedSize] = useState("S");
   const [returnSubmitted, setReturnSubmitted] = useState(false);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    const clean = orderInput.trim().toUpperCase();
-    if (mockOrders[clean]) {
-      setActiveOrder(mockOrders[clean]);
-      setNotFound(false);
-    } else {
-      setActiveOrder(null);
+    setIsLoading(true);
+    setNotFound(false);
+    setActiveOrder(null);
+    try {
+      const res = await fetch('/api/track-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderNumber: orderInput, email: emailInput })
+      });
+      const data = await res.json();
+      if (res.ok && data.tracking) {
+        setActiveOrder(data.tracking);
+      } else {
+        setNotFound(true);
+      }
+    } catch {
       setNotFound(true);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const loadDemoOrder = (id: string) => {
     setOrderInput(id);
     setEmailInput("client@luxury.com");
-    setActiveOrder(mockOrders[id]);
-    setNotFound(false);
-    setReturnSubmitted(false);
   };
 
   return (
@@ -147,9 +117,10 @@ export default function TrackOrderPage() {
             <div className="md:col-span-3 flex items-end">
               <button
                 type="submit"
-                className="w-full bg-stone-900 text-white font-metropolis text-[10px] tracking-[0.25em] uppercase p-4 hover:bg-black transition-all flex items-center justify-center gap-2 cursor-pointer font-semibold shadow-sm"
+                disabled={isLoading}
+                className="w-full bg-stone-900 text-white font-metropolis text-[10px] tracking-[0.25em] uppercase p-4 hover:bg-black transition-all flex items-center justify-center gap-2 cursor-pointer font-semibold shadow-sm disabled:opacity-50"
               >
-                <Search size={14} /> Track Order
+                {isLoading ? 'Searching...' : <><Search size={14} /> Track Order</>}
               </button>
             </div>
           </form>
