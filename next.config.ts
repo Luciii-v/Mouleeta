@@ -3,10 +3,7 @@ import type { NextConfig } from "next";
 // Comprehensive HTTP Security Headers for MOULEETA V.2
 // Protects against clickjacking, MIME sniffing, XSS, and data leakage.
 // Firebase Phone Auth requires Google reCAPTCHA and googleapis domains.
-const isProd = process.env.NODE_ENV === "production";
-const scriptSrc = isProd
-  ? "script-src 'self' https://www.google.com https://www.gstatic.com https://apis.google.com https://recaptchaenterprise.googleapis.com https://*.firebaseapp.com"
-  : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com https://apis.google.com https://recaptchaenterprise.googleapis.com https://*.firebaseapp.com";
+const scriptSrc = "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com https://apis.google.com https://recaptchaenterprise.googleapis.com https://*.firebaseapp.com";
 
 const securityHeaders = [
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
