@@ -50,7 +50,9 @@ export async function POST(req: Request) {
       );
 
       if (!updateRes.ok) {
-        throw new Error('Failed to update existing customer');
+        const errorData = await updateRes.json().catch(() => ({}));
+        console.error('Failed to update customer:', errorData);
+        throw new Error(errorData.errors ? JSON.stringify(errorData.errors) : 'Failed to update existing customer');
       }
     } else {
       // 3. Create new customer who accepts marketing
@@ -72,7 +74,13 @@ export async function POST(req: Request) {
       );
 
       if (!createRes.ok) {
-        throw new Error('Failed to create customer');
+        const errorData = await createRes.json().catch(() => ({}));
+        console.error('Failed to create customer:', errorData);
+        // If email is taken but wasn't found in search (eventual consistency), handle it gracefully
+        if (errorData.errors?.email?.includes('has already been taken')) {
+          return NextResponse.json({ success: true, message: 'Already subscribed' });
+        }
+        throw new Error(errorData.errors ? JSON.stringify(errorData.errors) : 'Failed to create customer');
       }
     }
 
@@ -80,7 +88,7 @@ export async function POST(req: Request) {
   } catch (error: unknown) {
     console.error('Newsletter subscription error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }
     );
   }

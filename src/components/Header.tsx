@@ -303,7 +303,7 @@ export default function Header() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsMobileMenuOpen(false)}
-              className="fixed inset-0 bg-black/40 z-[150] backdrop-blur-sm"
+              className="fixed inset-0 w-screen h-[100dvh] bg-black/40 z-[150] backdrop-blur-sm"
             />
             {/* Drawer */}
             <motion.div
@@ -311,7 +311,7 @@ export default function Header() {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-0 left-0 bottom-0 w-full max-w-[320px] bg-[#FAF8F5] z-[160] shadow-2xl flex flex-col p-6 overflow-y-auto"
+              className="fixed top-0 left-0 bottom-0 w-[85vw] max-w-[320px] h-[100dvh] bg-[#FAF8F5] z-[160] shadow-2xl flex flex-col p-6 overflow-y-auto"
             >
               <div className="flex justify-between items-center pb-6 border-b border-stone-200">
                 <span className="font-jost text-xs tracking-[0.2em] uppercase font-bold text-stone-900">MOULEETA</span>

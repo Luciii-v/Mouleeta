@@ -52,13 +52,13 @@ export default function Hero() {
       <div className="flex flex-col items-center justify-center z-10 w-full whitespace-nowrap">
         <motion.h1 
           style={{ x: leftTextX }} 
-          className="font-jost font-light text-7xl md:text-8xl tracking-[0.25em] text-[#1A1A1A] ml-8"
+          className="font-jost font-light text-5xl sm:text-6xl md:text-8xl tracking-[0.25em] text-[#1A1A1A] ml-0 md:ml-8"
         >
           TIMELESS
         </motion.h1>
         <motion.h1 
           style={{ x: rightTextX }} 
-          className="font-jost font-light text-7xl md:text-8xl tracking-[0.25em] text-[#999999] -mr-8"
+          className="font-jost font-light text-5xl sm:text-6xl md:text-8xl tracking-[0.25em] text-[#999999] mr-0 md:-mr-8"
         >
           ELEGANCE
         </motion.h1>
