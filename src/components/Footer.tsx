@@ -193,10 +193,10 @@ export default function Footer() {
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
         transition={{ duration: 1.5, delay: 0.6 }}
-        className="w-full max-w-6xl mt-24 flex justify-between items-center text-xs text-gray-500 font-inter"
+        className="w-full max-w-6xl mt-24 flex flex-col md:flex-row justify-between items-center gap-6 md:gap-0 text-xs text-gray-500 font-inter text-center md:text-left"
       >
         <p>© 2026 MOULEETA. All rights reserved.</p>
-        <div className="flex gap-6">
+        <div className="flex flex-wrap justify-center gap-6">
           <Link href="/policies/privacy" className="hover:text-white transition-colors">Privacy</Link>
           <Link href="/policies/terms" className="hover:text-white transition-colors">Terms</Link>
           <a href="https://instagram.com/mouleetafashion" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Instagram</a>
