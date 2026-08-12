@@ -87,8 +87,8 @@ export default function Header() {
 
       <div className="max-w-[1440px] mx-auto px-6 md:px-16 flex items-center justify-between">
 
-        {/* Left: Navigation links (w-1/3) */}
-        <nav className="w-1/3 flex items-center justify-start gap-8 hidden md:flex">
+        {/* Left: Navigation links */}
+        <nav className="flex-1 flex items-center justify-start gap-8 hidden md:flex">
           {/* Shop with Full-Width MegaMenu Hover Trigger */}
           <div
             onMouseEnter={handleShopMouseEnter}
@@ -127,7 +127,7 @@ export default function Header() {
 
 
         {/* Mobile menu toggle */}
-        <div className="w-1/3 flex items-center justify-start md:hidden">
+        <div className="flex-1 flex items-center justify-start md:hidden">
           <button
             onClick={() => setIsMobileMenuOpen(true)}
             className={`p-1 cursor-pointer transition-colors ${iconColorClass}`}
@@ -137,8 +137,8 @@ export default function Header() {
           </button>
         </div>
 
-        {/* Center: Brand Logo and Name perfectly centered (w-1/3) */}
-        <div className="w-1/3 flex flex-col items-center justify-center">
+        {/* Center: Brand Logo and Name perfectly centered */}
+        <div className="flex-none flex flex-col items-center justify-center px-2">
           <Link href="/" className="flex flex-col items-center justify-center group gap-1">
             {/* Crown Logo - aspect ratio 1.55 (688x444), scaled up for high visibility */}
             <motion.div
@@ -177,8 +177,8 @@ export default function Header() {
           </Link>
         </div>
 
-        {/* Right: Icons (w-1/3) aligned right */}
-        <div className="w-1/3 flex items-center justify-end gap-5 md:gap-7">
+        {/* Right: Icons aligned right */}
+        <div className="flex-1 flex items-center justify-end gap-3 sm:gap-5 md:gap-7">
           
           <motion.button
             layoutId="search-island"

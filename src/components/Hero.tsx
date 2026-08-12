@@ -20,9 +20,9 @@ export default function Hero() {
     restDelta: 0.001
   });
 
-  // 3. Use smoothProgress instead of scrollYProgress for ALL transforms
-  const leftTextX = useTransform(smoothProgress, [0, 1], ["0%", "-150%"]);
-  const rightTextX = useTransform(smoothProgress, [0, 1], ["0%", "150%"]);
+  // Hero split text parallax - reduced for mobile to prevent wild shifts
+  const leftTextX = useTransform(smoothProgress, [0, 1], ["0%", "-80%"]);
+  const rightTextX = useTransform(smoothProgress, [0, 1], ["0%", "80%"]);
   const buttonOpacity = useTransform(smoothProgress, [0, 0.3], [1, 0]);
   const buttonScale = useTransform(smoothProgress, [0, 0.5], [1, 0.8]);
   const indicatorStretch = useTransform(smoothProgress, [0, 1], ["0%", "400%"]);
@@ -52,13 +52,13 @@ export default function Hero() {
       <div className="flex flex-col items-center justify-center z-10 w-full whitespace-nowrap">
         <motion.h1 
           style={{ x: leftTextX }} 
-          className="font-jost font-light text-4xl sm:text-5xl md:text-8xl tracking-[0.25em] text-[#1A1A1A] ml-0 md:ml-8"
+          className="font-jost font-light text-3xl sm:text-5xl md:text-8xl tracking-[0.1em] sm:tracking-[0.25em] text-[#1A1A1A] ml-0 md:ml-8"
         >
           TIMELESS
         </motion.h1>
         <motion.h1 
           style={{ x: rightTextX }} 
-          className="font-jost font-light text-4xl sm:text-5xl md:text-8xl tracking-[0.25em] text-[#999999] mr-0 md:-mr-8"
+          className="font-jost font-light text-3xl sm:text-5xl md:text-8xl tracking-[0.1em] sm:tracking-[0.25em] text-[#999999] mr-0 md:-mr-8"
         >
           ELEGANCE
         </motion.h1>
