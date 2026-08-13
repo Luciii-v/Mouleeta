@@ -15,7 +15,7 @@ export default function ProfilePage() {
     email: "",
     countryCode: "+91",
     phone: "",
-    gender: "Prefer not to say",
+    gender: "Select",
     acceptsMarketing: false,
   });
   const [showNotification, setShowNotification] = useState(false);
@@ -51,7 +51,7 @@ export default function ProfilePage() {
           email,
           countryCode,
           phone,
-          gender: profile.gender || "Prefer not to say",
+          gender: profile.gender || "Select",
           acceptsMarketing: profile.marketingOptIn || false,
         }));
         setVerifiedEmail(email);
@@ -91,7 +91,7 @@ export default function ProfilePage() {
   ];
 
   const genderOptions = [
-    "Prefer not to say",
+    "Select",
     "Female",
     "Male",
     "Non-binary",
@@ -113,10 +113,8 @@ export default function ProfilePage() {
       setOtpModal({ isOpen: true, target: formData.email, type: "email" });
       return;
     }
-    if (currentFullPhone !== verifiedPhone && formData.phone) {
-      setOtpModal({ isOpen: true, target: currentFullPhone, type: "phone" });
-      return;
-    }
+    // Removed Phone OTP requirement to bypass Firebase billing constraints.
+    // The phone number will just be saved as a standard contact number.
     
     setIsEditing(false);
     
@@ -126,10 +124,8 @@ export default function ProfilePage() {
         name: `${formData.firstName} ${formData.lastName}`.trim(),
         gender: formData.gender,
         marketingOptIn: formData.acceptsMarketing,
-        // If phone wasn't changed and was previously verified, this just re-saves the same number.
-        // We only save it if it's currently verified (verifiedPhone matches).
-        phoneNumber: currentFullPhone === verifiedPhone ? verifiedPhone : null,
-        phoneVerified: currentFullPhone === verifiedPhone && verifiedPhone.length > 5,
+        phoneNumber: currentFullPhone || null,
+        phoneVerified: false,
       });
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -169,34 +165,6 @@ export default function ProfilePage() {
           <p className="text-sm text-gray-500 mt-1">
             Your Mouleeta Privé profile. Full order history available after connecting your Shopify account.
           </p>
-        </div>
-        <div className="flex items-center gap-3">
-          {!isEditing ? (
-            <button
-              type="button"
-              onClick={() => setIsEditing(true)}
-              className="bg-black text-white px-6 py-2.5 text-xs font-medium uppercase tracking-[0.15em] hover:bg-gray-800 transition-colors cursor-pointer shadow-sm"
-            >
-              Enable Edit Mode
-            </button>
-          ) : (
-            <>
-              <button
-                type="button"
-                onClick={() => setIsEditing(false)}
-                className="border border-gray-300 bg-white px-5 py-2.5 text-xs font-medium uppercase tracking-[0.15em] text-gray-600 hover:text-black transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={(e) => handleSave(e)}
-                className="bg-emerald-700 text-white px-6 py-2.5 text-xs font-medium uppercase tracking-[0.15em] hover:bg-emerald-800 transition-colors cursor-pointer shadow-sm"
-              >
-                Save Changes
-              </button>
-            </>
-          )}
         </div>
       </div>
 
@@ -316,24 +284,6 @@ export default function ProfilePage() {
                 >
                   Phone Number
                 </label>
-                {`${formData.countryCode} ${formData.phone}`.trim() === verifiedPhone ? (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 border border-emerald-200">
-                    ✓ Verified
-                  </span>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-amber-700 bg-amber-50 px-2 py-0.5 border border-amber-200">
-                      ⚠️ Unverified
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setOtpModal({ isOpen: true, target: `${formData.countryCode} ${formData.phone}`.trim(), type: "phone" })}
-                      className="text-[10px] font-bold uppercase tracking-wider text-black underline hover:text-gray-600 transition-colors cursor-pointer"
-                    >
-                      Verify via OTP
-                    </button>
-                  </div>
-                )}
               </div>
               {isEditing ? (
                 <div className="flex">
@@ -366,19 +316,12 @@ export default function ProfilePage() {
                     <span className="font-medium text-gray-600">{formData.countryCode}</span>
                     <span>{formData.phone}</span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setOtpModal({ isOpen: true, target: `${formData.countryCode} ${formData.phone}`.trim(), type: "phone" })}
-                    className="text-[10px] font-semibold uppercase tracking-wider text-stone-600 hover:text-black transition-colors cursor-pointer underline"
-                  >
-                    Manage OTP
-                  </button>
                 </div>
               )}
             </div>
 
             {/* Gender Dropdown */}
-            <div className="space-y-2 sm:col-span-2">
+            <div className="space-y-2">
               <label
                 htmlFor="gender"
                 className="block text-xs font-medium uppercase tracking-wider text-gray-600"
