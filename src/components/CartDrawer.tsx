@@ -22,7 +22,7 @@ interface CartDrawerProps {
 }
 
 export default function CartDrawer({ upsellProducts = [] }: CartDrawerProps) {
-  const { cart, isOpen, closeCart, removeFromCart } = useCartStore();
+  const { cart, isOpen, closeCart, removeFromCart, decrementQuantity, incrementQuantity } = useCartStore();
   const router = useRouter();
   const { data: session } = useSession();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -129,12 +129,33 @@ export default function CartDrawer({ upsellProducts = [] }: CartDrawerProps) {
                       <div>
                         <div className="flex justify-between items-start mb-2">
                           <h3 className="text-[11px] tracking-[0.1em] uppercase font-medium text-stone-900 leading-relaxed pr-4">{item.title}</h3>
-                          <button onClick={() => removeFromCart(item.variantId)} className="text-stone-300 hover:text-red-500 transition-colors text-xs cursor-pointer">
+                          <button
+                            onClick={() => removeFromCart(item.variantId)}
+                            className="text-stone-300 hover:text-red-500 transition-colors text-xs cursor-pointer"
+                            aria-label={`Remove ${item.title} from cart`}
+                          >
                             ✕
                           </button>
                         </div>
                         <p className="text-[10px] tracking-widest text-stone-500 uppercase">Size: {item.size || 'OS'}</p>
-                        <p className="text-[10px] tracking-widest text-stone-500 uppercase mt-1">Qty: {item.quantity}</p>
+                        {/* Quantity Controls */}
+                        <div className="flex items-center gap-3 mt-3">
+                          <button
+                            onClick={() => decrementQuantity(item.variantId)}
+                            className="w-6 h-6 flex items-center justify-center border border-stone-300 text-stone-600 hover:border-stone-900 hover:text-stone-900 transition-colors text-sm leading-none cursor-pointer"
+                            aria-label="Decrease quantity"
+                          >
+                            −
+                          </button>
+                          <span className="text-[11px] tracking-widest text-stone-900 min-w-[16px] text-center">{item.quantity}</span>
+                          <button
+                            onClick={() => incrementQuantity(item.variantId)}
+                            className="w-6 h-6 flex items-center justify-center border border-stone-300 text-stone-600 hover:border-stone-900 hover:text-stone-900 transition-colors text-sm leading-none cursor-pointer"
+                            aria-label="Increase quantity"
+                          >
+                            +
+                          </button>
+                        </div>
                       </div>
                       <p className="text-[11px] font-medium tracking-widest text-stone-900 mt-4">{formattedItemPrice}</p>
                     </div>

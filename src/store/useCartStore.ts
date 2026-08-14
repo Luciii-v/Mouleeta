@@ -20,6 +20,8 @@ export interface CartState {
   toggleCart: () => void;
   addToCart: (item: Omit<CartItem, 'quantity'>) => void;
   removeFromCart: (variantId: string) => void;
+  decrementQuantity: (variantId: string) => void;
+  incrementQuantity: (variantId: string) => void;
   clearCart: () => void;
 }
 
@@ -56,6 +58,28 @@ export const useCartStore = create<CartState>()(
       removeFromCart: (variantId) => {
         set((state) => ({
           cart: state.cart.filter((item) => item.variantId !== variantId),
+        }));
+      },
+
+      decrementQuantity: (variantId) => {
+        set((state) => ({
+          cart: state.cart
+            .map((item) =>
+              item.variantId === variantId
+                ? { ...item, quantity: item.quantity - 1 }
+                : item
+            )
+            .filter((item) => item.quantity > 0),
+        }));
+      },
+
+      incrementQuantity: (variantId) => {
+        set((state) => ({
+          cart: state.cart.map((item) =>
+            item.variantId === variantId
+              ? { ...item, quantity: item.quantity + 1 }
+              : item
+          ),
         }));
       },
 
