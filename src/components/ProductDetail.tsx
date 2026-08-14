@@ -203,28 +203,45 @@ export default function ProductDetail({ product, allProducts }: ProductDetailPro
   };
 
   if (product.descriptionHtml) {
-    let html = product.descriptionHtml;
+    const html = product.descriptionHtml;
     
-    const extractSection = (marker: string) => {
-      const idx = html.indexOf(marker);
-      if (idx !== -1) {
-        const content = html.substring(idx + marker.length);
-        html = html.substring(0, idx);
-        return content.replace(/^(?:<br\s*\/?>|<\/?p>|\s)+/i, '').trim();
-      }
-      return '';
-    };
+    const markers = [
+      { id: 'fit', text: 'Fit & Model Information:' },
+      { id: 'care', text: 'Care Instructions:' },
+      { id: 'details', text: 'Product Details:' }
+    ];
 
-    // Extract from bottom to top to slice the string correctly
-    parsedSections.fit = extractSection('Fit & Model Information:');
-    parsedSections.care = extractSection('Care Instructions:');
-    parsedSections.details = extractSection('Product Details:');
+    // Find positions of all markers
+    const foundMarkers = markers
+      .map(m => ({ ...m, idx: html.indexOf(m.text) }))
+      .filter(m => m.idx !== -1)
+      .sort((a, b) => a.idx - b.idx);
+
+    // Extract content for each marker
+    foundMarkers.forEach((marker, i) => {
+      const start = marker.idx + marker.text.length;
+      const end = (i < foundMarkers.length - 1) ? foundMarkers[i + 1].idx : html.length;
+      
+      let content = html.substring(start, end);
+      content = content.replace(/^(?:<br\s*\/?>|<\/?p>|\s)+/i, '').trim();
+      content = content.replace(/(?:<br\s*\/?>|<\/?p>|\s)+$/i, '').trim();
+      
+      parsedSections[marker.id as keyof typeof parsedSections] = content;
+    });
+
+    // The top section is everything before the first marker
+    if (foundMarkers.length > 0) {
+      parsedSections.top = html.substring(0, foundMarkers[0].idx);
+    } else {
+      parsedSections.top = html;
+    }
     
-    // Clean up the remaining top description
-    parsedSections.top = html
+    // Clean up top description
+    parsedSections.top = parsedSections.top
       .replace(/Description\s*:/i, '')
       .replace(/<p>\s*<\/p>/g, '')
       .replace(/^(?:<br\s*\/?>|<\/?p>|\s)+/i, '')
+      .replace(/(?:<br\s*\/?>|<\/?p>|\s)+$/i, '')
       .trim();
   }
 
