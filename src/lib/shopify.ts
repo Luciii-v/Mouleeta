@@ -127,7 +127,9 @@ export interface ShopifyProductDetailResult {
         id: string;
         title: string;
         availableForSale: boolean;
+        quantityAvailable?: number | null;
         price: { amount: string; currencyCode: string };
+        selectedOptions?: { name: string; value: string }[];
       };
     }>;
   };
@@ -730,12 +732,13 @@ export async function getProductByHandle(handle: string): Promise<ShopifyProduct
         descriptionHtml
         priceRange { minVariantPrice { amount currencyCode } }
         images(first: 50) { edges { node { url altText } } }
-        variants(first: 10) {
+        variants(first: 50) {
           edges {
             node {
               id
               title
               availableForSale
+              quantityAvailable
               price {
                 amount
                 currencyCode
