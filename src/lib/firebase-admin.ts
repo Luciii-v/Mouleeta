@@ -1,30 +1,32 @@
-import { initializeApp, getApps, cert } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
+import { initializeApp, getApps, getApp, cert } from "firebase-admin/app";
+import { getFirestore, Firestore } from "firebase-admin/firestore";
+
+let adminDb: Firestore | null = null;
 
 if (!getApps().length) {
   try {
-    const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64
-      ? JSON.parse(
-          Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64, "base64").toString("utf-8")
-        )
-      : undefined;
+    const raw = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
 
-    if (!serviceAccount) {
+    if (!raw) {
       console.warn(
         "FIREBASE_SERVICE_ACCOUNT_BASE64 is missing. Admin SDK operations will fail."
       );
-    }
-
-    if (serviceAccount) {
-      initializeApp({
-        credential: cert(serviceAccount),
-      });
     } else {
-      initializeApp();
+      const serviceAccount = JSON.parse(
+        Buffer.from(raw, "base64").toString("utf-8")
+      );
+      initializeApp({ credential: cert(serviceAccount) });
     }
   } catch (error) {
     console.error("Firebase admin initialization error", error);
   }
 }
 
-export const adminDb = getFirestore();
+// Only call getFirestore() if an app was successfully initialized
+try {
+  adminDb = getFirestore(getApp());
+} catch {
+  console.warn("Firebase Admin: Firestore unavailable — app not initialized.");
+}
+
+export { adminDb };
