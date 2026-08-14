@@ -194,6 +194,40 @@ export default function ProductDetail({ product, allProducts }: ProductDetailPro
   // Accordion States
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
 
+  // Parse Shopify Description into Sections
+  const parsedSections = {
+    top: product.descriptionHtml || '',
+    details: '',
+    care: '',
+    fit: ''
+  };
+
+  if (product.descriptionHtml) {
+    let html = product.descriptionHtml;
+    
+    const extractSection = (marker: string) => {
+      const idx = html.indexOf(marker);
+      if (idx !== -1) {
+        const content = html.substring(idx + marker.length);
+        html = html.substring(0, idx);
+        return content.replace(/^(?:<br\s*\/?>|<\/?p>|\s)+/i, '').trim();
+      }
+      return '';
+    };
+
+    // Extract from bottom to top to slice the string correctly
+    parsedSections.fit = extractSection('Fit & Model Information:');
+    parsedSections.care = extractSection('Care Instructions:');
+    parsedSections.details = extractSection('Product Details:');
+    
+    // Clean up the remaining top description
+    parsedSections.top = html
+      .replace(/Description\s*:/i, '')
+      .replace(/<p>\s*<\/p>/g, '')
+      .replace(/^(?:<br\s*\/?>|<\/?p>|\s)+/i, '')
+      .trim();
+  }
+
   // Derive simple fallback properties if pure Shopify structure is missing fields
   const firstSentence = product.description 
     ? product.description.split('.')[0] 
@@ -381,11 +415,11 @@ export default function ProductDetail({ product, allProducts }: ProductDetailPro
           {/* Separation Divider */}
           <div className="w-full h-[1px] bg-onyx/10 mb-8" />
 
-          {/* Long Description (HTML from Shopify) */}
-          {product.descriptionHtml ? (
+          {/* Top Description (Parsed from HTML) */}
+          {parsedSections.top ? (
             <div 
               className="product-description font-jost text-[13px] md:text-[14px] text-stone-600 font-light leading-[1.8] tracking-[0.03em] mb-8"
-              dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
+              dangerouslySetInnerHTML={{ __html: parsedSections.top }}
             />
           ) : (
             <p className="font-inter text-xs sm:text-sm text-[#1A1A1A]/70 leading-relaxed tracking-wider mb-8">
@@ -527,35 +561,98 @@ export default function ProductDetail({ product, allProducts }: ProductDetailPro
           {/* Premium Details Accordions */}
           <div className="w-full border-t border-onyx/10 pt-4 flex flex-col select-none mb-8">
 
-            {/* Accordion 1: Details */}
-            <div className="border-b border-onyx/10">
-              <button 
-                onClick={() => setOpenAccordion(openAccordion === 'details' ? null : 'details')}
-                className="flex items-center justify-between w-full py-4 bg-transparent border-none cursor-pointer group"
-              >
-                <div className="flex items-center gap-3 text-[#1A1A1A]">
-                  <Leaf size={16} strokeWidth={1.5} className="group-hover:text-[#1A1A1A]/60 transition-colors" />
-                  <span className="font-metropolis text-[10px] tracking-wider uppercase group-hover:text-[#1A1A1A]/60 transition-colors">Product Details</span>
-                </div>
-                {openAccordion === 'details' ? <ChevronUp size={16} className="text-[#1A1A1A]/50" /> : <ChevronDown size={16} className="text-[#1A1A1A]/50" />}
-              </button>
-              <AnimatePresence>
-                {openAccordion === 'details' && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="overflow-hidden"
-                  >
-                    <p className="font-inter text-xs text-[#1A1A1A]/60 leading-relaxed pb-4">
-                      Crafted from 100% organic fibers. This piece features our signature relaxed silhouette, French seams, and Corozo nut buttons. Pre-washed for incredible softness and zero shrinkage.
-                    </p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            {/* Accordion: Product Details */}
+            {(parsedSections.details || !product.descriptionHtml) && (
+              <div className="border-b border-onyx/10">
+                <button 
+                  onClick={() => setOpenAccordion(openAccordion === 'details' ? null : 'details')}
+                  className="flex items-center justify-between w-full py-4 bg-transparent border-none cursor-pointer group"
+                >
+                  <div className="flex items-center gap-3 text-[#1A1A1A]">
+                    <Leaf size={16} strokeWidth={1.5} className="group-hover:text-[#1A1A1A]/60 transition-colors" />
+                    <span className="font-metropolis text-[10px] tracking-wider uppercase group-hover:text-[#1A1A1A]/60 transition-colors">Product Details</span>
+                  </div>
+                  {openAccordion === 'details' ? <ChevronUp size={16} className="text-[#1A1A1A]/50" /> : <ChevronDown size={16} className="text-[#1A1A1A]/50" />}
+                </button>
+                <AnimatePresence>
+                  {openAccordion === 'details' && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div 
+                        className="product-description font-jost text-[13px] text-[#1A1A1A]/70 leading-[1.8] pb-6"
+                        dangerouslySetInnerHTML={{ __html: parsedSections.details || 'Crafted from 100% organic fibers. This piece features our signature relaxed silhouette, French seams, and Corozo nut buttons. Pre-washed for incredible softness and zero shrinkage.' }}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
 
-            {/* Accordion 2 */}
+            {/* Accordion: Fit & Model */}
+            {parsedSections.fit && (
+              <div className="border-b border-onyx/10">
+                <button 
+                  onClick={() => setOpenAccordion(openAccordion === 'fit' ? null : 'fit')}
+                  className="flex items-center justify-between w-full py-4 bg-transparent border-none cursor-pointer group"
+                >
+                  <div className="flex items-center gap-3 text-[#1A1A1A]">
+                    <span className="font-metropolis text-[10px] tracking-wider uppercase group-hover:text-[#1A1A1A]/60 transition-colors">Fit & Model Info</span>
+                  </div>
+                  {openAccordion === 'fit' ? <ChevronUp size={16} className="text-[#1A1A1A]/50" /> : <ChevronDown size={16} className="text-[#1A1A1A]/50" />}
+                </button>
+                <AnimatePresence>
+                  {openAccordion === 'fit' && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div 
+                        className="product-description font-jost text-[13px] text-[#1A1A1A]/70 leading-[1.8] pb-6"
+                        dangerouslySetInnerHTML={{ __html: parsedSections.fit }}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+
+            {/* Accordion: Care Instructions */}
+            {parsedSections.care && (
+              <div className="border-b border-onyx/10">
+                <button 
+                  onClick={() => setOpenAccordion(openAccordion === 'care' ? null : 'care')}
+                  className="flex items-center justify-between w-full py-4 bg-transparent border-none cursor-pointer group"
+                >
+                  <div className="flex items-center gap-3 text-[#1A1A1A]">
+                    <span className="font-metropolis text-[10px] tracking-wider uppercase group-hover:text-[#1A1A1A]/60 transition-colors">Care Instructions</span>
+                  </div>
+                  {openAccordion === 'care' ? <ChevronUp size={16} className="text-[#1A1A1A]/50" /> : <ChevronDown size={16} className="text-[#1A1A1A]/50" />}
+                </button>
+                <AnimatePresence>
+                  {openAccordion === 'care' && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div 
+                        className="product-description font-jost text-[13px] text-[#1A1A1A]/70 leading-[1.8] pb-6"
+                        dangerouslySetInnerHTML={{ __html: parsedSections.care }}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+
+            {/* Accordion: Shipping */}
             <div className="border-b border-onyx/10">
               <button 
                 onClick={() => setOpenAccordion(openAccordion === 'shipping' ? null : 'shipping')}
