@@ -13,6 +13,10 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    if (!adminDb) {
+      return NextResponse.json({ error: "Database unavailable" }, { status: 503 });
+    }
+
     const ref = adminDb.collection("users").doc(uid);
     const snap = await ref.get();
 
@@ -47,6 +51,10 @@ export async function POST(request: Request) {
 
     if (!uid) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (!adminDb) {
+      return NextResponse.json({ error: "Database unavailable" }, { status: 503 });
     }
 
     const body = await request.json();
