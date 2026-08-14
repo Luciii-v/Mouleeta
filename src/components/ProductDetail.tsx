@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCartStore } from '@/store/useCartStore';
-import { ShoppingBag, ArrowLeft, Truck, ChevronDown, ChevronUp, Leaf } from 'lucide-react';
+import { ShoppingBag, ArrowLeft, Truck, ChevronDown, ChevronUp, Leaf, Ruler, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -600,6 +600,7 @@ export default function ProductDetail({ product, allProducts }: ProductDetailPro
                   className="flex items-center justify-between w-full py-4 bg-transparent border-none cursor-pointer group"
                 >
                   <div className="flex items-center gap-3 text-[#1A1A1A]">
+                    <Ruler size={16} strokeWidth={1.5} className="group-hover:text-[#1A1A1A]/60 transition-colors" />
                     <span className="font-metropolis text-[10px] tracking-wider uppercase group-hover:text-[#1A1A1A]/60 transition-colors">Fit & Model Info</span>
                   </div>
                   {openAccordion === 'fit' ? <ChevronUp size={16} className="text-[#1A1A1A]/50" /> : <ChevronDown size={16} className="text-[#1A1A1A]/50" />}
@@ -630,6 +631,7 @@ export default function ProductDetail({ product, allProducts }: ProductDetailPro
                   className="flex items-center justify-between w-full py-4 bg-transparent border-none cursor-pointer group"
                 >
                   <div className="flex items-center gap-3 text-[#1A1A1A]">
+                    <Sparkles size={16} strokeWidth={1.5} className="group-hover:text-[#1A1A1A]/60 transition-colors" />
                     <span className="font-metropolis text-[10px] tracking-wider uppercase group-hover:text-[#1A1A1A]/60 transition-colors">Care Instructions</span>
                   </div>
                   {openAccordion === 'care' ? <ChevronUp size={16} className="text-[#1A1A1A]/50" /> : <ChevronDown size={16} className="text-[#1A1A1A]/50" />}
