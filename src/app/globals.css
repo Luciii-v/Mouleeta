@@ -88,3 +88,24 @@ body {
       scrollbar-width: none;
   }
 }
+
+/* Luxury Product Description Formatting */
+.product-description {
+  font-style: normal !important;
+}
+.product-description * {
+  font-style: normal !important;
+}
+.product-description p {
+  margin-bottom: 1.5em;
+}
+.product-description br {
+  display: block;
+  margin-bottom: 0.5em;
+  content: "";
+}
+.product-description strong, .product-description b {
+  font-weight: 500;
+  color: #1A1A1A;
+  letter-spacing: 0.05em;
+}

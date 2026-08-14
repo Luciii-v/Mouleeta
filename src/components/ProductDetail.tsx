@@ -384,7 +384,7 @@ export default function ProductDetail({ product, allProducts }: ProductDetailPro
           {/* Long Description (HTML from Shopify) */}
           {product.descriptionHtml ? (
             <div 
-              className="prose prose-sm prose-stone text-[13px] text-[#1A1A1A]/70 font-light leading-relaxed tracking-wide mb-8"
+              className="product-description font-jost text-[13px] md:text-[14px] text-stone-600 font-light leading-[1.8] tracking-[0.03em] mb-8"
               dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
             />
           ) : (
