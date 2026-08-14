@@ -206,7 +206,7 @@ export default function ProductDetail({ product, allProducts }: ProductDetailPro
     const html = product.descriptionHtml;
     
     const markers = [
-      { id: 'fit', regex: /Fit\s*&\s*Model(?:\s*Info(?:rmation)?)?\s*:?/i, label: 'Fit & Model Info' },
+      { id: 'fit', regex: /Fit\s*(?:&|&amp;)\s*Model(?:\s*Info(?:rmation)?)?\s*:?/i, label: 'Fit & Model Info' },
       { id: 'care', regex: /Care\s*Instructions\s*:?/i, label: 'Care Instructions' },
       { id: 'details', regex: /Product\s*Details\s*:?/i, label: 'Product Details' }
     ];
