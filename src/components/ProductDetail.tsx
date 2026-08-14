@@ -206,20 +206,27 @@ export default function ProductDetail({ product, allProducts }: ProductDetailPro
     const html = product.descriptionHtml;
     
     const markers = [
-      { id: 'fit', text: 'Fit & Model Information:' },
-      { id: 'care', text: 'Care Instructions:' },
-      { id: 'details', text: 'Product Details:' }
+      { id: 'fit', regex: /Fit\s*&\s*Model(?:\s*Info(?:rmation)?)?\s*:?/i, label: 'Fit & Model Info' },
+      { id: 'care', regex: /Care\s*Instructions\s*:?/i, label: 'Care Instructions' },
+      { id: 'details', regex: /Product\s*Details\s*:?/i, label: 'Product Details' }
     ];
 
     // Find positions of all markers
     const foundMarkers = markers
-      .map(m => ({ ...m, idx: html.indexOf(m.text) }))
+      .map(m => {
+        const match = html.match(m.regex);
+        return {
+          ...m,
+          idx: match && match.index !== undefined ? match.index : -1,
+          matchLength: match ? match[0].length : 0
+        };
+      })
       .filter(m => m.idx !== -1)
       .sort((a, b) => a.idx - b.idx);
 
     // Extract content for each marker
     foundMarkers.forEach((marker, i) => {
-      const start = marker.idx + marker.text.length;
+      const start = marker.idx + marker.matchLength;
       const end = (i < foundMarkers.length - 1) ? foundMarkers[i + 1].idx : html.length;
       
       let content = html.substring(start, end);
