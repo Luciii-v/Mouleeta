@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { redirect } from "next/navigation";
 
 // Checkout is handled via Shopify Hosted Checkout.

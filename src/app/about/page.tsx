@@ -1,5 +1,7 @@
 import Philosophy from '@/components/Philosophy';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'About Us | MOULEETA',
   description: 'Welcome to Mouleeta, where fashion meets empowerment.',
