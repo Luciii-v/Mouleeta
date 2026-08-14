@@ -134,24 +134,43 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      # ── Step 4: Pull Vercel environment & project settings ────────
-      # This syncs your Vercel project settings (framework, output dir, etc.)
-      # Environment variables are managed in Vercel Dashboard — NOT re-injected here.
-      - name: Pull Vercel environment info
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      # ── Step 4: Sync all env vars from GitHub Secrets → Vercel ──────
+      # This guarantees Vercel's build uses the correct values from GitHub
+      # rather than whatever is manually set in the Vercel Dashboard.
+      - name: Sync env vars to Vercel
+        run: |
+          sync_env() {
+            printf '%s' "$2" | vercel env rm "$1" production --yes --token=${{ secrets.VERCEL_TOKEN }} 2>/dev/null || true
+            printf '%s' "$2" | vercel env add "$1" production --token=${{ secrets.VERCEL_TOKEN }}
+          }
+          sync_env FIREBASE_SERVICE_ACCOUNT_BASE64        "$FIREBASE_SERVICE_ACCOUNT_BASE64"
+          sync_env NEXT_PUBLIC_FIREBASE_API_KEY           "$NEXT_PUBLIC_FIREBASE_API_KEY"
+          sync_env NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN       "$NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN"
+          sync_env NEXT_PUBLIC_FIREBASE_PROJECT_ID        "$NEXT_PUBLIC_FIREBASE_PROJECT_ID"
+          sync_env NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET    "$NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET"
+          sync_env NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID "$NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID"
+          sync_env NEXT_PUBLIC_FIREBASE_APP_ID            "$NEXT_PUBLIC_FIREBASE_APP_ID"
+          sync_env NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID    "$NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID"
+          sync_env NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN       "$NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN"
+          sync_env NEXT_PUBLIC_SHOPIFY_CHECKOUT_DOMAIN    "$NEXT_PUBLIC_SHOPIFY_CHECKOUT_DOMAIN"
+          sync_env NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN "$NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN"
+          sync_env SHOPIFY_API_VERSION                    "$SHOPIFY_API_VERSION"
+          sync_env SHOPIFY_CLIENT_ID                      "$SHOPIFY_CLIENT_ID"
+          sync_env SHOPIFY_CLIENT_SECRET                  "$SHOPIFY_CLIENT_SECRET"
+          sync_env SHOPIFY_ADMIN_ACCESS_TOKEN             "$SHOPIFY_ADMIN_ACCESS_TOKEN"
+          sync_env NEXT_PUBLIC_RAZORPAY_KEY_ID            "$NEXT_PUBLIC_RAZORPAY_KEY_ID"
+          sync_env RAZORPAY_KEY_SECRET                    "$RAZORPAY_KEY_SECRET"
+          sync_env RESEND_API_KEY                         "$RESEND_API_KEY"
+          sync_env SHIPROCKET_API_EMAIL                   "$SHIPROCKET_API_EMAIL"
+          sync_env SHIPROCKET_API_PASSWORD                "$SHIPROCKET_API_PASSWORD"
+          sync_env GOOGLE_CLIENT_ID                       "$GOOGLE_CLIENT_ID"
+          sync_env GOOGLE_CLIENT_SECRET                   "$GOOGLE_CLIENT_SECRET"
+          sync_env NEXTAUTH_SECRET                        "$NEXTAUTH_SECRET"
+          sync_env NEXTAUTH_URL                           "$NEXTAUTH_URL"
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
-      # ── Step 5: Build project via Vercel (uses Vercel's build system) ─
-      - name: Build project with Vercel
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          # ── Firebase (injected from GitHub Secrets — bypasses Vercel Dashboard) ─
           FIREBASE_SERVICE_ACCOUNT_BASE64: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_BASE64 }}
-          # ── Firebase Client SDK ────────────────────────────────────────────────
           NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
           NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
           NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
@@ -159,20 +178,28 @@ jobs:
           NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
           NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID }}
-          # ── Shopify ────────────────────────────────────────────────────────────
           NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN: ${{ secrets.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN }}
           NEXT_PUBLIC_SHOPIFY_CHECKOUT_DOMAIN: ${{ secrets.NEXT_PUBLIC_SHOPIFY_CHECKOUT_DOMAIN }}
           NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN: ${{ secrets.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN }}
           SHOPIFY_API_VERSION: ${{ secrets.SHOPIFY_API_VERSION }}
-          # ── Razorpay ───────────────────────────────────────────────────────────
+          SHOPIFY_CLIENT_ID: ${{ secrets.SHOPIFY_CLIENT_ID }}
+          SHOPIFY_CLIENT_SECRET: ${{ secrets.SHOPIFY_CLIENT_SECRET }}
+          SHOPIFY_ADMIN_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ADMIN_ACCESS_TOKEN }}
           NEXT_PUBLIC_RAZORPAY_KEY_ID: ${{ secrets.NEXT_PUBLIC_RAZORPAY_KEY_ID }}
-          # ── NextAuth ────────────────────────────────────────────────────────────
-          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+          RAZORPAY_KEY_SECRET: ${{ secrets.RAZORPAY_KEY_SECRET }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          SHIPROCKET_API_EMAIL: ${{ secrets.SHIPROCKET_API_EMAIL }}
+          SHIPROCKET_API_PASSWORD: ${{ secrets.SHIPROCKET_API_PASSWORD }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
 
-      # ── Step 6: Deploy prebuilt output to Vercel Production ───────
+      # ── Step 5: Deploy to Vercel (Vercel builds on their servers) ────
+      # CI job already verified the build succeeds. Now let Vercel build
+      # cleanly on their infrastructure using the synced env vars above.
       - name: Deploy to Vercel Production
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
