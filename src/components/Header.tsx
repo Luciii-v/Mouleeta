@@ -243,7 +243,7 @@ export default function Header() {
           ) : (
             <Link
               href="/account/login"
-              className={`transition-opacity p-1 cursor-pointer ${iconColorClass}`}
+              className={`transition-opacity p-2 cursor-pointer flex items-center justify-center shrink-0 ${iconColorClass}`}
               aria-label="Account"
             >
               <User size={18} strokeWidth={1.5} />
@@ -253,7 +253,7 @@ export default function Header() {
           {/* Order Tracking Icon */}
           <Link
             href="/track"
-            className={`transition-opacity p-2 cursor-pointer ${iconColorClass}`}
+            className={`transition-opacity p-2 cursor-pointer flex items-center justify-center shrink-0 ${iconColorClass}`}
             aria-label="Track Order & Returns"
             title="Track Order & Returns"
           >
