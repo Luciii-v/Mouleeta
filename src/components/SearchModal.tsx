@@ -144,7 +144,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
             {/* Search Container Morph */}
             <motion.div
               layoutId="search-island"
-              style={{ borderRadius: 24 }}
+              style={{ borderRadius: "24px" }}
               transition={{ type: "spring", stiffness: 300, damping: 28, mass: 0.8 }}
               className="relative w-full max-w-2xl bg-[#FAF9F6] shadow-2xl overflow-hidden max-h-[85vh] flex flex-col z-10"
             >

@@ -183,7 +183,7 @@ export default function Header() {
           <motion.button
             layoutId="search-island"
             onClick={() => setIsSearchOpen(true)}
-            style={{ borderRadius: 9999 }}
+            style={{ borderRadius: "9999px" }}
             className={`transition-opacity p-2 cursor-pointer flex items-center justify-center ${iconColorClass}`}
             aria-label="Search"
           >
