@@ -25,9 +25,8 @@ const metropolisFallback = Montserrat({
   variable: '--font-metropolis' 
 });
 const playfair = Playfair_Display({
-  weight: ['400', '500', '600', '700'],
-  style: ['normal', 'italic'],
   subsets: ['latin'],
+  style: ['normal', 'italic'],
   variable: '--font-editorial'
 });
 
