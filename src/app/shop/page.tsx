@@ -84,7 +84,6 @@ export default async function ShopPage() {
               const product = productEdge.node;
               return (
                 <div key={product.id} className="w-full relative group">
-                  {/* @ts-expect-error - ignore shopify types - formatting differences between standard and sandbox types */}
                   <SandboxProductCard product={product} lightBg={true} isSpringCollection={false} />
                 </div>
               );
