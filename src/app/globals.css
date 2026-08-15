@@ -29,6 +29,7 @@
   --font-orbitron: var(--font-orbitron), sans-serif;
   --font-inter: var(--font-inter), sans-serif;
   --font-editorial: var(--font-editorial), serif;
+
 }
 
 /* Custom Base Resets */
@@ -77,6 +78,24 @@ body {
 
 .animate-fadeIn {
   animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes anti-gravity {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+.animate-anti-gravity {
+  animation: anti-gravity 6s ease-in-out infinite;
+}
+
+.animate-anti-gravity-stagger {
+  animation: anti-gravity 6s ease-in-out infinite;
+  animation-delay: 3s;
 }
 
 @layer utilities {

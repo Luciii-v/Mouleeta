@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { getCollectionByHandle, getCollectionProducts } from '@/lib/shopify';
-import ProductCard from '@/components/ProductCard';
-import AnimatedGrid from '@/components/AnimatedGrid';
+import SandboxProductCard from '@/components/SandboxProductCard';
+import HeroImageFader from '@/components/HeroImageFader';
+import { ChevronDown } from 'lucide-react';
 
 interface Props {
   params: Promise<{ handle: string }>;
@@ -66,25 +67,70 @@ export default async function CollectionPage({ params }: Props) {
 
   const pageTitle = titleFromHandle(handle);
 
+  // Get first image from the first 5 products to fade through
+  const heroImages = products
+    .slice(0, 5)
+    .map(p => p.node.images?.edges?.[0]?.node?.url)
+    .filter(Boolean) as string[];
+
+  // Fallback if no images found
+  if (heroImages.length === 0) heroImages.push('/placeholder.png');
+
+  // Format products for SandboxProductCard
+  const formattedProducts = products.map(p => ({
+    node: {
+      id: p.node.id,
+      title: p.node.title,
+      handle: p.node.handle,
+      description: p.node.description,
+      priceRange: {
+        minVariantPrice: {
+          amount: p.node.priceRange.minVariantPrice.amount,
+          currencyCode: p.node.priceRange.minVariantPrice.currencyCode || 'INR'
+        }
+      },
+      images: p.node.images,
+      featuredImage: p.node.images?.edges?.[0]?.node ? { url: p.node.images.edges[0].node.url } : undefined,
+      variants: p.node.variants
+    }
+  }));
+
   return (
-    <div className="py-24 bg-[#FAF9F6] min-h-screen">
-      <div className="max-w-[1440px] mx-auto px-6 md:px-16">
-        
-        {/* Dynamic header */}
-        <header className="mb-20 text-center">
-          <span className="font-metropolis font-light text-[10px] md:text-[11px] uppercase tracking-[0.25em] text-[#1A1A1A]/50 block mb-3">
-            Collection
+    <div className="min-h-screen bg-[#FDFBF7]">
+      {/* 100vh Immersive Hero Section */}
+      <div className="relative w-full h-[100dvh] bg-[#1A1A1A]">
+        <HeroImageFader 
+          images={heroImages} 
+          interval={3500} 
+          altText={`The ${pageTitle} Collection`} 
+        />
+        {/* Subtle Dark Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 pointer-events-none" />
+
+        {/* Hero Title */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center pointer-events-none">
+          <span className="font-metropolis font-medium text-[10px] md:text-[12px] uppercase tracking-[0.4em] text-white/80 mb-6 drop-shadow-md">
+            Mouleeta Collection
           </span>
-          <h1 className="font-jost font-light text-2xl sm:text-3xl md:text-[36px] text-[#1A1A1A] tracking-[0.25em] uppercase leading-none">
+          <h1 className="font-jost font-light text-5xl sm:text-6xl md:text-[90px] text-white tracking-[0.1em] uppercase leading-[1.1] drop-shadow-xl max-w-5xl">
             {pageTitle}
           </h1>
-        </header>
+        </div>
 
+        {/* Scroll Indicator */}
+        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 pointer-events-none animate-bounce">
+          <span className="font-metropolis text-[9px] uppercase tracking-[0.3em] text-white/70">Scroll to View</span>
+          <ChevronDown size={20} strokeWidth={1} className="text-white/70" />
+        </div>
+      </div>
+
+      <div className="max-w-[1600px] mx-auto px-6 md:px-12 py-24 md:py-32">
         {/* Dynamic Grid Layout */}
-        {products.length === 1 ? (
+        {formattedProducts.length === 1 ? (
           <div className="flex flex-col items-center justify-center w-full">
             <div className="w-full max-w-sm mb-16">
-              <ProductCard product={products[0].node} lightBg={true} />
+              {/* @ts-ignore */}
+              <SandboxProductCard product={formattedProducts[0].node} lightBg={true} isSpringCollection={false} />
             </div>
             <div className="py-8 px-12 border border-onyx/10 bg-white/50 backdrop-blur-sm text-center max-w-lg mx-auto">
               <h3 className="font-jost text-[11px] font-semibold uppercase tracking-[0.25em] text-[#1A1A1A]">More styles arriving soon</h3>
@@ -92,11 +138,27 @@ export default async function CollectionPage({ params }: Props) {
             </div>
           </div>
         ) : (
-          <AnimatedGrid className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 md:gap-12">
-            {products.map((edge) => (
-              <ProductCard key={edge.node.id} product={edge.node} lightBg={true} />
-            ))}
-          </AnimatedGrid>
+          <div className="
+            grid grid-cols-2 md:grid-cols-3 
+            gap-x-4 gap-y-12 md:gap-x-12 md:gap-y-24 
+            
+            /* Mobile Stagger: Push down the right column (even items) */
+            [&>*:nth-child(2n)]:translate-y-12
+            
+            /* Desktop Stagger: Reset mobile, and push down the middle column (3n+2) */
+            md:[&>*:nth-child(2n)]:translate-y-0
+            md:[&>*:nth-child(3n+2)]:translate-y-24
+          ">
+            {formattedProducts.map((productEdge) => {
+              const product = productEdge.node;
+              return (
+                <div key={product.id} className="w-full relative group">
+                  {/* @ts-ignore */}
+                  <SandboxProductCard product={product} lightBg={true} isSpringCollection={false} />
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>

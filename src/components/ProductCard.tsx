@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCartStore } from '@/store/useCartStore';
 import { useMemoryStore } from '@/store/useMemoryStore';
 import { Pin } from 'lucide-react';
@@ -15,6 +16,7 @@ interface ProductCardProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   product: any;
   lightBg?: boolean;
+  isSpringCollection?: boolean;
 }
 
 const LOCAL_PRODUCT_COLORS: Record<string, string[]> = {
@@ -36,7 +38,7 @@ const LOCAL_PRODUCT_SIZES: Record<string, string[]> = {
   'backless-dress': ['S', 'M', 'L']
 };
 
-export default function ProductCard({ product, lightBg = true }: ProductCardProps) {
+export default function ProductCard({ product, lightBg = true, isSpringCollection = false }: ProductCardProps) {
   const { status } = useSession();
   const router = useRouter();
   const addToCart = useCartStore((state) => state.addToCart);
@@ -56,10 +58,10 @@ export default function ProductCard({ product, lightBg = true }: ProductCardProp
 
   const hasShopifyVariants = allVariants.length > 1 || (allVariants[0] && allVariants[0].title !== 'Default Title');
 
-  const allColors = (hasShopifyVariants 
+  const allColors = ((hasShopifyVariants 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ? Array.from(new Set(allVariants.map((v: any) => getOptionValue(v, 'color')).filter(Boolean)))
-    : (LOCAL_PRODUCT_COLORS[product.handle] || [])) as string[];
+    : (LOCAL_PRODUCT_COLORS[product.handle] || [])) as string[]).filter(c => c.toLowerCase() !== 'dots');
 
   const allSizes = (hasShopifyVariants 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -96,7 +98,14 @@ export default function ProductCard({ product, lightBg = true }: ProductCardProp
     ? Math.round(parseFloat(product.priceRange.minVariantPrice.amount)) 
     : 0;
 
-  const firstSentence = product.description?.split('.')[0] || 'Luxury Linen Piece';
+  const rawDesc = product.description || '';
+  const cleanDesc = rawDesc
+    .replace(/Description\s*:/i, '')
+    .replace(/^[A-Z][a-zA-Z\s&]*(Dress|Top|Set|Sets|Shirt|Blouse|Skirt|Pant|Pants|Trouser|Trousers|Kurta|Saree|Jumpsuit|Co-ord|Suit)\s+/i, '')
+    .replace(/^[\s–—,.\xa0]+/, '')
+    .trim();
+
+  const firstSentence = cleanDesc ? cleanDesc.split('.')[0] : 'Luxury Linen Piece';
 
   const handleQuickAdd = (size: string) => {
     if (status !== "authenticated") {
@@ -149,6 +158,28 @@ export default function ProductCard({ product, lightBg = true }: ProductCardProp
   const filter = useTransform(blurVal, (val) => `blur(${val}px)`);
   const zIndex = useTransform(scrollYProgress, [0, 0.5, 1], [0, 10, 0]);
 
+  // Image Carousel Logic
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const nextImage = useCallback(() => {
+    setCurrentImageIndex((prev) => (prev + 1) % rawImages.length);
+  }, [rawImages.length]);
+
+  const prevImage = useCallback(() => {
+    setCurrentImageIndex((prev) => (prev - 1 + rawImages.length) % rawImages.length);
+  }, [rawImages.length]);
+
+  const handleManualSwipe = (direction: 'next' | 'prev', e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (direction === 'next') {
+      nextImage();
+    } else {
+      prevImage();
+    }
+  };
+
 
 
   // Memory Dock auto-add removed (Manual-Only)
@@ -158,8 +189,16 @@ export default function ProductCard({ product, lightBg = true }: ProductCardProp
       ref={cardRef}
       style={{ rotateX, scale, opacity, filter, zIndex }}
       className="flex flex-col group relative select-none transform-style-3d"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={() => {
+        setIsHovered(true);
+        if (rawImages.length > 1) {
+          setCurrentImageIndex(1);
+        }
+      }}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setCurrentImageIndex(0);
+      }}
     >
       {/* Wishlist and Pin overlay */}
       <div className="absolute top-3 right-3 z-20 flex flex-col gap-2">
@@ -170,7 +209,9 @@ export default function ProductCard({ product, lightBg = true }: ProductCardProp
           price: price,
           image: primaryImage,
           subtext: firstSentence
-        }} />
+        }}
+        className="w-[34px] h-[34px] flex items-center justify-center !p-0"
+        />
         <button
           onClick={(e) => {
             e.preventDefault();
@@ -183,10 +224,10 @@ export default function ProductCard({ product, lightBg = true }: ProductCardProp
               price
             });
           }}
-          className="w-8 h-8 rounded-full bg-[#FAF9F6]/80 backdrop-blur-md flex items-center justify-center text-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-[#FAF9F6] transition-all shadow-sm opacity-0 group-hover:opacity-100 cursor-pointer"
+          className="group w-[34px] h-[34px] rounded-full bg-white/85 hover:bg-white backdrop-blur-sm border border-black/5 flex items-center justify-center text-stone-800 hover:scale-110 active:scale-95 transition-all duration-300 shadow-sm cursor-pointer"
           title="Pin to Memory Dock"
         >
-          <Pin size={14} />
+          <Pin size={18} className="transition-colors duration-300 group-hover:text-black" />
         </button>
       </div>
 
@@ -194,13 +235,35 @@ export default function ProductCard({ product, lightBg = true }: ProductCardProp
       <div className={`relative aspect-[3/4] overflow-hidden border ${borderThemeClass} transition-colors duration-500 group/frame`}>
         <Link href={`/products/${product.handle}`} className="block w-full h-full relative pointer-events-auto">
               <Image
-                src={primaryImage}
+                src={isSpringCollection && rawImages.length > 1 ? rawImages[currentImageIndex] : primaryImage}
                 alt={`${product.title}`}
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                 className="object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105 pointer-events-none"
               />
         </Link>
+        
+        {/* Left Arrow (Only for Spring Collection) */}
+        {isSpringCollection && rawImages.length > 1 && (
+          <button 
+            onClick={(e) => handleManualSwipe('prev', e)}
+            onTouchEnd={(e) => handleManualSwipe('prev', e)}
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/70 backdrop-blur-sm opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 hover:bg-white cursor-pointer shadow-sm"
+          >
+            <ChevronLeft size={16} className="text-[#1A1A1A]" />
+          </button>
+        )}
+
+        {/* Right Arrow (Only for Spring Collection) */}
+        {isSpringCollection && rawImages.length > 1 && (
+          <button 
+            onClick={(e) => handleManualSwipe('next', e)}
+            onTouchEnd={(e) => handleManualSwipe('next', e)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/70 backdrop-blur-sm opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 hover:bg-white cursor-pointer shadow-sm"
+          >
+            <ChevronRight size={16} className="text-[#1A1A1A]" />
+          </button>
+        )}
 
 
 
@@ -249,9 +312,6 @@ export default function ProductCard({ product, lightBg = true }: ProductCardProp
                 {product.title}
               </h3>
             </Link>
-            <p className={`font-inter text-[11px] mt-1 tracking-wide ${subtitleThemeClass}`}>
-              {firstSentence}
-            </p>
           </div>
           <span className={`font-inter text-[13px] font-bold ${textThemeClass}`}>
             ₹{price.toLocaleString('en-IN')}

@@ -8,17 +8,6 @@ const apiVersion = process.env.SHOPIFY_API_VERSION || '2024-04';
 // Check if Shopify integration is configured
 const isConfigured = Boolean(domain && accessToken);
 
-export const ALLOWED_HANDLES = [
-  'collar-dress',
-  'backless-top',
-  'backless-dress',
-  'blue-bag',
-  'pink-bag',
-  'slit-dress',
-  'tie-n-dye',
-  'short-dress',
-  'co-ord-sets'
-];
 
 // Internal Interfaces for Shopify GraphQL Storefront API responses
 interface ShopifyImageNode {
@@ -320,7 +309,7 @@ export async function getProducts(options?: Record<string, unknown>): Promise<Sh
     }>({ query, cache: 'no-store', tags: ['products'] });
 
     const allProducts = res.body.data.products.edges.map((edge) => edge.node);
-    return allProducts.filter(p => ALLOWED_HANDLES.includes(p.handle));
+    return allProducts;
   } catch (error) {
     console.error('Failed to get raw products, using fallback:', error);
     return [];
@@ -689,7 +678,7 @@ export async function getCollectionByHandle(handle: string): Promise<ShopifyColl
                   currencyCode
                 }
               }
-              images(first: 2) {
+              images(first: 10) {
                 edges {
                   node {
                     url
@@ -719,10 +708,6 @@ export async function getCollectionByHandle(handle: string): Promise<ShopifyColl
 }
 
 export async function getProductByHandle(handle: string): Promise<ShopifyProductDetailResult | null> {
-  if (!ALLOWED_HANDLES.includes(handle)) {
-    return null;
-  }
-
   const query = `
     query getProduct($handle: String!) {
       product(handle: $handle) {
@@ -790,7 +775,7 @@ export async function getCollectionProducts(handle: string = 'frontpage'): Promi
                   currencyCode
                 }
               }
-              images(first: 2) {
+              images(first: 10) {
                 edges {
                   node {
                     url
@@ -823,9 +808,6 @@ export async function getCollectionProducts(handle: string = 'frontpage'): Promi
     const edges = res.body?.data?.collection?.products?.edges || [];
     if (edges.length > 0) {
       return edges.filter(edge => {
-        const isAllowed = ALLOWED_HANDLES.includes(edge.node.handle);
-        if (!isAllowed) return false;
-        
         const handleLower = handle.toLowerCase();
         const isFeed = handleLower === 'frontpage' || handleLower === 'new-arrivals' || handleLower === 'spring-collection' || handleLower === 'spring';
         if (isFeed && edge.node.handle.includes('bag')) {
@@ -853,7 +835,7 @@ export async function getCollectionProducts(handle: string = 'frontpage'): Promi
                   currencyCode
                 }
               }
-              images(first: 1) {
+              images(first: 10) {
                 edges {
                   node {
                     url
@@ -893,7 +875,7 @@ export async function getCollectionProducts(handle: string = 'frontpage'): Promi
       };
     }>({ query: allProductsQuery, cache: 'no-store' });
 
-    const allEdges = (allRes.body?.data?.products?.edges || []).filter(edge => ALLOWED_HANDLES.includes(edge.node.handle));
+    const allEdges = (allRes.body?.data?.products?.edges || []);
     
     // Filter based on the requested handle
     const filteredEdges = allEdges.filter((edge) => {

@@ -23,6 +23,7 @@ export default async function Home() {
               currencyCode: p.priceRange.minVariantPrice.currencyCode || 'INR'
             }
           },
+          images: p.images,
           featuredImage: p.images?.edges?.[0]?.node ? { url: p.images.edges[0].node.url } : undefined,
           variants: p.variants
         }

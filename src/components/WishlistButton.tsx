@@ -55,8 +55,8 @@ export default function WishlistButton({ item, className = "", size = 18, showTe
       onClick={handleClick}
       className={`group flex items-center gap-2 p-2.5 rounded-full transition-all duration-300 cursor-pointer ${
         showText 
-          ? 'px-4 py-3 bg-white border border-stone-300 hover:border-black' 
-          : 'bg-white/85 hover:bg-white backdrop-blur-sm border border-black/5 shadow-sm hover:scale-110'
+          ? 'px-4 py-3 bg-white border border-stone-300 hover:border-black active:scale-[0.98]' 
+          : 'bg-white/85 hover:bg-white backdrop-blur-sm border border-black/5 shadow-sm hover:scale-110 active:scale-95'
       } ${className}`}
       aria-label={isSaved ? "Remove from wishlist" : "Add to wishlist"}
       title={isSaved ? "Remove from wishlist" : "Add to Mouleeta Privé Wishlist"}

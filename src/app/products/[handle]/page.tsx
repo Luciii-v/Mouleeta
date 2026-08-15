@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { getProductByHandle, getProducts } from '@/lib/shopify';
-import ProductDetail from '@/components/ProductDetail';
+import SandboxProductDetail from '@/components/SandboxProductDetail';
 
 interface Props {
   params: Promise<{
@@ -64,7 +64,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ProductPage({ params }: Props) {
   const { handle } = await params;
   const product = await getProductByHandle(handle);
-  const allProducts = await getProducts();
 
   if (!product) {
     return (
@@ -75,8 +74,8 @@ export default async function ProductPage({ params }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-[#f6f1e8]">
-      <ProductDetail product={product} allProducts={allProducts} />
+    <main className="min-h-screen bg-[#FDFBF7]">
+      <SandboxProductDetail product={product} />
     </main>
   );
 }

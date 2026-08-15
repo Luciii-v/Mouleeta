@@ -117,9 +117,9 @@ export default function ProductDetail({ product, allProducts }: ProductDetailPro
   const hasShopifyVariants = allVariants.length > 1 || (allVariants[0] && allVariants[0].title !== 'Default Title');
 
   // Find all unique color and size option values
-  const allColors = hasShopifyVariants 
+  const allColors = (hasShopifyVariants 
     ? Array.from(new Set(allVariants.map(v => getOptionValue(v, 'color')).filter(Boolean)))
-    : (LOCAL_PRODUCT_COLORS[product.handle] || []);
+    : (LOCAL_PRODUCT_COLORS[product.handle] || [])).filter(c => c.toLowerCase() !== 'dots');
 
   const allSizes = hasShopifyVariants 
     ? Array.from(new Set(allVariants.map(v => getOptionValue(v, 'size')).filter(Boolean)))
@@ -243,12 +243,32 @@ export default function ProductDetail({ product, allProducts }: ProductDetailPro
       parsedSections.top = html;
     }
     
-    // Clean up top description
+    // Clean up top description — strip "Description :" label (including wrapped in <strong>)
+    // Also strip the leading product-name phrase that Shopify includes at the start
+    // e.g. "Midnight Blue Ikkat Cotton Maxi Dress Effortlessly..." → strip "Midnight Blue Ikkat Cotton Maxi Dress"
     parsedSections.top = parsedSections.top
-      .replace(/Description\s*:/i, '')
+      .replace(/<strong>\s*Description\s*:?\s*<\/strong>/gi, '') // <strong>Description :</strong>
+      .replace(/Description\s*:/gi, '')                           // plain "Description :"
       .replace(/<p>\s*<\/p>/g, '')
-      .replace(/^(?:<br\s*\/?>|<\/?p>|\s)+/i, '')
-      .replace(/(?:<br\s*\/?>|<\/?p>|\s)+$/i, '')
+      .replace(/^(?:<br\s*\/?>|<\/?p[^>]*>|\s)+/, '')            // leading whitespace/tags
+      .replace(/(?:<br\s*\/?>|<\/?p[^>]*>|\s)+$/, '')            // trailing whitespace/tags
+      .trim();
+
+    // Strip leading product-name phrase from plain text start of description.
+    // Pattern: captures text like "Midnight Blue Ikkat Cotton Maxi Dress " before the real description.
+    // We detect this by matching: one or more capitalized words ending in a product-type word, 
+    // followed immediately by the next sentence (which doesn't start with a product type word).
+    const productTypeWords = ['Dress', 'Top', 'Set', 'Sets', 'Shirt', 'Blouse', 'Skirt', 'Pant', 'Pants', 'Trouser', 'Trousers', 'Kurta', 'Saree', 'Jumpsuit', 'Co-ord', 'Suit'];
+    const productTypePart = productTypeWords.join('|');
+    // Match: [optional HTML open tag][words including color/fabric] + [product type] + [space]
+    const leadingNamePattern = new RegExp(
+      `^(<[^>]+>\\s*)*([A-Z][a-zA-Z\\s&]*(${productTypePart})\\s+)`,
+      ''
+    );
+    parsedSections.top = parsedSections.top.replace(leadingNamePattern, (_match, tags) => tags || '');
+    // Clean up any leftover leading junk/punctuation after stripping
+    parsedSections.top = parsedSections.top
+      .replace(/^[\s–—,.\xa0]+/, '')
       .trim();
   }
 
@@ -439,9 +459,9 @@ export default function ProductDetail({ product, allProducts }: ProductDetailPro
           {/* Separation Divider */}
           <div className="w-full h-[1px] bg-onyx/10 mb-8" />
 
-          {/* Top Description (Parsed from HTML) */}
           {parsedSections.top ? (
             <div 
+              suppressHydrationWarning
               className="product-description font-jost text-[13px] md:text-[14px] text-stone-600 font-light leading-[1.8] tracking-[0.03em] mb-8"
               dangerouslySetInnerHTML={{ __html: parsedSections.top }}
             />
@@ -457,25 +477,52 @@ export default function ProductDetail({ product, allProducts }: ProductDetailPro
               <span className="font-metropolis text-[10px] font-bold tracking-[0.18em] uppercase text-[#1A1A1A] block mb-3">
                 Color: <span className="font-light text-neutral-500 capitalize">{selectedColor}</span>
               </span>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-3 items-center">
                 {allColors.map((color) => {
                   const isSelected = selectedColor === color;
-                  // Color name mapping for custom swatch visuals (with ivory background fallback)
-                  const swatchColor = color.toLowerCase() === 'white' ? '#FFFFFF' : color.toLowerCase() === 'black' ? '#1A1A1A' : color.toLowerCase() === 'blue' ? 'navy' : color.toLowerCase();
+                  // Determine if this is a real CSS color or a pattern/texture label
+                  const knownColors: Record<string, string> = {
+                    white: '#FFFFFF', black: '#1A1A1A', blue: 'navy', navy: 'navy',
+                    pink: '#E8A0A8', red: '#C0392B', green: '#2E7D32', yellow: '#F9C74F',
+                    orange: '#F4845F', purple: '#7B2D8B', grey: '#808080', gray: '#808080',
+                    brown: '#7B5E3A', beige: '#C8A97C', ivory: '#FFFFF0', cream: '#FFFDD0',
+                    indigo: '#4B0082', teal: '#008080', coral: '#FF6B6B', lavender: '#B57BEE',
+                  };
+                  const cssColor = knownColors[color.toLowerCase()];
+                  const isPatternLabel = !cssColor; // e.g. "Dots", "Ikat", "Stripe"
+
+                  if (isPatternLabel) {
+                    // Render as a text pill swatch
+                    return (
+                      <button
+                        key={color}
+                        onClick={() => handleColorSelect(color)}
+                        title={color}
+                        className={`h-8 px-3 border text-[10px] uppercase tracking-widest font-metropolis transition-all duration-300 cursor-pointer rounded-none ${
+                          isSelected
+                            ? 'border-[#1A1A1A] bg-[#1A1A1A] text-white'
+                            : 'border-onyx/20 text-[#1A1A1A] hover:border-[#1A1A1A] bg-transparent'
+                        }`}
+                      >
+                        {color}
+                      </button>
+                    );
+                  }
+
                   return (
                     <button
                       key={color}
                       onClick={() => handleColorSelect(color)}
                       className={`w-8 h-8 rounded-full border transition-all duration-300 relative cursor-pointer ${
-                        isSelected 
-                          ? 'border-[#1A1A1A] scale-110 shadow-sm ring-2 ring-stone-900/10' 
+                        isSelected
+                          ? 'border-[#1A1A1A] scale-110 shadow-sm ring-2 ring-stone-900/10'
                           : 'border-onyx/15 hover:border-[#1A1A1A] hover:scale-105'
                       }`}
                       title={color}
                     >
-                      <span 
-                        className="absolute inset-1 rounded-full border border-black/5" 
-                        style={{ backgroundColor: swatchColor }}
+                      <span
+                        className="absolute inset-1 rounded-full border border-black/5"
+                        style={{ backgroundColor: cssColor }}
                       />
                     </button>
                   );
@@ -607,6 +654,7 @@ export default function ProductDetail({ product, allProducts }: ProductDetailPro
                       className="overflow-hidden"
                     >
                       <div 
+                        suppressHydrationWarning
                         className="product-description font-jost text-[13px] text-[#1A1A1A]/70 leading-[1.8] pb-6"
                         dangerouslySetInnerHTML={{ __html: parsedSections.details || 'Crafted from 100% organic fibers. This piece features our signature relaxed silhouette, French seams, and Corozo nut buttons. Pre-washed for incredible softness and zero shrinkage.' }}
                       />
@@ -638,6 +686,7 @@ export default function ProductDetail({ product, allProducts }: ProductDetailPro
                       className="overflow-hidden"
                     >
                       <div 
+                        suppressHydrationWarning
                         className="product-description font-jost text-[13px] text-[#1A1A1A]/70 leading-[1.8] pb-6"
                         dangerouslySetInnerHTML={{ __html: parsedSections.fit }}
                       />
@@ -669,6 +718,7 @@ export default function ProductDetail({ product, allProducts }: ProductDetailPro
                       className="overflow-hidden"
                     >
                       <div 
+                        suppressHydrationWarning
                         className="product-description font-jost text-[13px] text-[#1A1A1A]/70 leading-[1.8] pb-6"
                         dangerouslySetInnerHTML={{ __html: parsedSections.care }}
                       />
