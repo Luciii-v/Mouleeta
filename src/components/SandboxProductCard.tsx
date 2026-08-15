@@ -162,13 +162,13 @@ export default function SandboxProductCard({ product, lightBg = true, isSpringCo
   // Image Carousel Logic
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const nextImage = useCallback(() => {
+  const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % rawImages.length);
-  }, [rawImages.length]);
+  };
 
-  const prevImage = useCallback(() => {
+  const prevImage = () => {
     setCurrentImageIndex((prev) => (prev - 1 + rawImages.length) % rawImages.length);
-  }, [rawImages.length]);
+  };
 
   const handleManualSwipe = (direction: 'next' | 'prev', e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();

@@ -129,7 +129,7 @@ export default async function CollectionPage({ params }: Props) {
         {formattedProducts.length === 1 ? (
           <div className="flex flex-col items-center justify-center w-full">
             <div className="w-full max-w-sm mb-16">
-              {/* @ts-ignore */}
+              {/* @ts-expect-error - ignore shopify types */}
               <SandboxProductCard product={formattedProducts[0].node} lightBg={true} isSpringCollection={false} />
             </div>
             <div className="py-8 px-12 border border-onyx/10 bg-white/50 backdrop-blur-sm text-center max-w-lg mx-auto">
@@ -153,7 +153,7 @@ export default async function CollectionPage({ params }: Props) {
               const product = productEdge.node;
               return (
                 <div key={product.id} className="w-full relative group">
-                  {/* @ts-ignore */}
+                  {/* @ts-expect-error - ignore shopify types */}
                   <SandboxProductCard product={product} lightBg={true} isSpringCollection={false} />
                 </div>
               );

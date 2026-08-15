@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 /**
  * MOULEETA — Shopify Inventory Update Script
  * ============================================
