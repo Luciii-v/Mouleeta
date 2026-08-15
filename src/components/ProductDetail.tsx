@@ -11,7 +11,6 @@ import { useRouter } from "next/navigation";
 import MagneticButton from '@/components/MagneticButton';
 import WishlistButton from '@/components/WishlistButton';
 import FitConciergeModal from '@/components/FitConciergeModal';
-import StyledWith from '@/components/StyledWith';
 import VIPConcierge from '@/components/VIPConcierge';
 import RecentlyViewed from '@/components/RecentlyViewed';
 
@@ -762,7 +761,6 @@ export default function ProductDetail({ product, allProducts }: ProductDetailPro
       </div>
 
       {/* Styled With / Complete The Look */}
-      <StyledWith currentProductId={product.id} currentCategory={product.tags?.[0]} allProducts={allProducts} />
 
       {/* Recently Admired Browsing History */}
       <RecentlyViewed 

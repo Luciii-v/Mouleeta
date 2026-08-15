@@ -866,7 +866,13 @@ export default function SandboxProductDetail({ product, allProducts }: ProductDe
         </div>
       </div>
 
-      <RecentlyViewed currentProductId={product.id} />
+      <RecentlyViewed currentProduct={{
+        id: product.id,
+        handle: product.handle,
+        title: product.title,
+        price: numericPrice,
+        image: primaryImage
+      }} />
       
       {/* Search overlay & other modals */}
       <FitConciergeModal 

@@ -27,7 +27,7 @@ export default async function GridTestPage() {
   }));
 
   // Use a stunning campaign/lifestyle image, or fallback to the first product image
-  const heroImageUrl = rawProducts[2]?.featuredImage?.url || rawProducts[0]?.featuredImage?.url || '/placeholder.png';
+  const heroImageUrl = rawProducts[2]?.node?.featuredImage?.url || rawProducts[0]?.node?.featuredImage?.url || '/placeholder.png';
 
   return (
     <main className="min-h-screen bg-[#FDFBF7]">
