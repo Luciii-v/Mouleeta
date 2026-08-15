@@ -77,15 +77,15 @@ export default function Header() {
   }
 
   return (
-    <header 
-      className={`fixed top-0 z-40 w-full transition-colors duration-500 ease-out select-none ${
-        isTransparent 
-          ? 'bg-transparent border-b border-transparent py-3 md:py-2' 
-          : 'bg-[#f6f1e8]/95 backdrop-blur-md border-b border-onyx/10 py-3 md:py-1 shadow-[0_4px_30px_rgba(0,0,0,0.02)]'
-      }`}
-    >
-
-      <div className="max-w-[1440px] mx-auto px-6 md:px-16 flex items-center justify-between">
+    <>
+      <header 
+        className={`fixed top-0 z-40 w-full transition-colors duration-500 ease-out select-none ${
+          isTransparent 
+            ? 'bg-transparent border-b border-transparent py-3 md:py-2' 
+            : 'bg-[#f6f1e8]/95 backdrop-blur-md border-b border-onyx/10 py-3 md:py-1 shadow-[0_4px_30px_rgba(0,0,0,0.02)]'
+        }`}
+      >
+        <div className="max-w-[1440px] mx-auto px-6 md:px-16 flex items-center justify-between">
 
         {/* Left: Navigation links */}
         <nav className="flex-1 flex items-center justify-start gap-8 hidden md:flex">
@@ -292,7 +292,8 @@ export default function Header() {
             )}
           </button>
         </div>
-      </div>
+        </div>
+      </header>
 
       <AnimatePresence>
         {isMobileMenuOpen && (
@@ -443,6 +444,6 @@ export default function Header() {
         onMouseEnter={handleShopMouseEnter}
         onMouseLeave={handleShopMouseLeave}
       />
-    </header>
+    </>
   );
 }
