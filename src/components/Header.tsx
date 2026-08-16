@@ -85,7 +85,7 @@ export default function Header() {
             : 'bg-[#f6f1e8]/95 backdrop-blur-md border-b border-onyx/10 py-3 md:py-1 shadow-[0_4px_30px_rgba(0,0,0,0.02)]'
         }`}
       >
-        <div className="relative max-w-[1440px] mx-auto px-6 md:px-16 flex items-center justify-between min-h-[54px] md:min-h-0">
+        <div className="relative max-w-[1440px] mx-auto px-6 md:px-16 flex items-center justify-between min-h-[60px] md:min-h-[72px]">
 
         {/* Left: Navigation links */}
         <nav className="flex-1 flex items-center justify-start gap-8 hidden md:flex">
@@ -139,7 +139,7 @@ export default function Header() {
         </div>
 
         {/* Center: Brand Logo and Name perfectly centered */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 md:static md:transform-none flex-none flex flex-col items-center justify-center px-2">
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex-none flex flex-col items-center justify-center px-2">
           <Link href="/" className="flex flex-col items-center justify-center group gap-1">
             {/* Crown Logo - aspect ratio 1.55 (688x444), scaled up for high visibility */}
             <motion.div
