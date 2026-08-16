@@ -1,11 +1,19 @@
 'use client';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import MagneticButton from '@/components/MagneticButton';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 export default function Hero() {
   const containerRef = useRef(null);
+  const isDesktop = useMediaQuery('(min-width: 768px)');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   // 1. Capture the raw scroll percentage
   const { scrollYProgress } = useScroll({
@@ -30,18 +38,31 @@ export default function Hero() {
   return (
     <div ref={containerRef} className="relative h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-[#F9F8F6]">
       
-      {/* Video Background */}
-      <video
-        className="absolute inset-0 w-full h-full object-cover opacity-100 pointer-events-none z-0"
-        autoPlay
-        loop
-        muted
-        playsInline
-        poster="/placeholder.png"
-        {...{ fetchPriority: 'high' } as Record<string, string>}
-      >
-        <source src="/videos/final-home-video.mp4" type="video/mp4" />
-      </video>
+      {/* Background Media */}
+      <div className="absolute inset-0 w-full h-full z-0 overflow-hidden bg-[#1A1A1A]">
+        {/* Optimized Mobile Background */}
+        <Image
+          src="/placeholder.png"
+          alt="Hero Background"
+          fill
+          priority
+          className="object-cover opacity-80 md:opacity-100"
+          sizes="100vw"
+        />
+        {/* Desktop Video Background - Only loaded on desktop to save mobile bandwidth */}
+        {mounted && isDesktop && (
+          <video
+            className="absolute inset-0 w-full h-full object-cover opacity-100 pointer-events-none"
+            autoPlay
+            loop
+            muted
+            playsInline
+            {...{ fetchPriority: 'high' } as Record<string, string>}
+          >
+            <source src="/videos/final-home-video.mp4" type="video/mp4" />
+          </video>
+        )}
+      </div>
 
       {/* Badge */}
       <motion.div style={{ opacity: buttonOpacity }} className="mb-6 border border-white/20 rounded-full px-6 py-2 z-20">
