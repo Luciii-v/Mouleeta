@@ -1,6 +1,6 @@
 'use client';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
-import { useRef, useState, useEffect } from 'react';
+import { useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import MagneticButton from '@/components/MagneticButton';
@@ -9,11 +9,6 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 export default function Hero() {
   const containerRef = useRef(null);
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
   
   // 1. Capture the raw scroll percentage
   const { scrollYProgress } = useScroll({
@@ -50,7 +45,7 @@ export default function Hero() {
           sizes="100vw"
         />
         {/* Desktop Video Background - Only loaded on desktop to save mobile bandwidth */}
-        {mounted && isDesktop && (
+        {isDesktop && (
           <video
             className="absolute inset-0 w-full h-full object-cover opacity-100 pointer-events-none"
             autoPlay
