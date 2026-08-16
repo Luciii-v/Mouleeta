@@ -130,10 +130,11 @@ export default function Header() {
         <div className="flex-1 flex items-center justify-start md:hidden">
           <button
             onClick={() => setIsMobileMenuOpen(true)}
-            className={`cursor-pointer transition-colors font-inter text-[11px] font-semibold uppercase tracking-[0.18em] ${textColorClass}`}
+            className={`cursor-pointer transition-colors font-editorial text-[14px] font-light uppercase tracking-[0.15em] flex items-center gap-1.5 ${textColorClass}`}
             aria-label="Open navigation menu"
           >
             Menu
+            <span className="text-[8px] opacity-60 mb-[2px]">•</span>
           </button>
         </div>
 
