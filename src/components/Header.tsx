@@ -229,6 +229,13 @@ export default function Header() {
                   <Link href="/account/orders" className="text-xs text-stone-800 hover:text-black font-medium tracking-wide transition-colors">
                     Orders & Returns
                   </Link>
+                  <Link href="/track" className="text-xs text-stone-800 hover:text-black font-medium tracking-wide transition-colors">
+                    Track Order
+                  </Link>
+                  <Link href="/wishlist" className="text-xs text-stone-800 hover:text-black font-medium tracking-wide transition-colors flex items-center justify-between">
+                    <span>Wishlist</span>
+                    {wishlist.length > 0 && <span className="bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">{wishlist.length}</span>}
+                  </Link>
                   <Link href="/account/addresses" className="text-xs text-stone-800 hover:text-black font-medium tracking-wide transition-colors">
                     Saved Addresses
                   </Link>
@@ -254,7 +261,7 @@ export default function Header() {
           {/* Order Tracking Icon */}
           <Link
             href="/track"
-            className={`transition-opacity p-2 cursor-pointer flex items-center justify-center shrink-0 ${iconColorClass}`}
+            className={`hidden md:flex transition-opacity p-2 cursor-pointer items-center justify-center shrink-0 ${iconColorClass}`}
             aria-label="Track Order & Returns"
             title="Track Order & Returns"
           >
@@ -264,7 +271,7 @@ export default function Header() {
           {/* Wishlist Icon */}
           <Link
             href="/wishlist"
-            className={`relative p-2 transition-opacity flex items-center justify-center cursor-pointer ${iconColorClass}`}
+            className={`hidden md:flex relative p-2 transition-opacity items-center justify-center cursor-pointer ${iconColorClass}`}
             aria-label="Wishlist"
             title="Mouleeta Privé Wishlist"
           >
@@ -409,6 +416,10 @@ export default function Header() {
                       <Link href="/account/orders" onClick={() => setIsMobileMenuOpen(false)} className="font-inter text-xs text-stone-800 hover:text-black py-0.5">
                         Orders & Returns
                       </Link>
+                      <Link href="/wishlist" onClick={() => setIsMobileMenuOpen(false)} className="font-inter text-xs text-stone-800 hover:text-black py-0.5 flex items-center justify-between pr-4">
+                        <span>Wishlist</span>
+                        {wishlist.length > 0 && <span className="bg-red-600 text-white text-[9px] font-bold px-1.5 rounded-full">{wishlist.length}</span>}
+                      </Link>
                       <Link href="/account/addresses" onClick={() => setIsMobileMenuOpen(false)} className="font-inter text-xs text-stone-800 hover:text-black py-0.5">
                         Saved Addresses
                       </Link>
@@ -424,10 +435,16 @@ export default function Header() {
                     </button>
                   </div>
                 ) : (
-                  <Link href="/account/login" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 font-inter text-xs text-stone-800 hover:text-black">
-                    <User size={16} strokeWidth={1.5} />
-                    <span>My Account</span>
-                  </Link>
+                  <>
+                    <Link href="/account/login" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 font-inter text-xs text-stone-800 hover:text-black">
+                      <User size={16} strokeWidth={1.5} />
+                      <span>My Account</span>
+                    </Link>
+                    <Link href="/wishlist" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 font-inter text-xs text-stone-800 hover:text-black mt-2">
+                      <Heart size={16} strokeWidth={1.5} className={wishlist.length > 0 ? "fill-red-600 text-red-600" : ""} />
+                      <span>Wishlist {wishlist.length > 0 && `(${wishlist.length})`}</span>
+                    </Link>
+                  </>
                 )}
               </div>
             </motion.div>
