@@ -24,6 +24,9 @@ export default function Header() {
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleShopMouseEnter = () => {
+    if (typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches) {
+      return;
+    }
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current);
       closeTimeoutRef.current = null;
@@ -32,6 +35,9 @@ export default function Header() {
   };
 
   const handleShopMouseLeave = () => {
+    if (typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches) {
+      return;
+    }
     closeTimeoutRef.current = setTimeout(() => {
       setIsHoveringShop(false);
     }, 150);
@@ -219,7 +225,7 @@ export default function Header() {
               </Link>
 
               {/* Hover Dropdown Menu */}
-              <div className="absolute right-0 top-full mt-2 w-52 bg-[#F9F8F6] shadow-xl border border-stone-200 hidden group-hover:block p-5 animate-fadeIn text-stone-900 z-50">
+              <div className="absolute right-0 top-full mt-2 w-52 bg-[#F9F8F6] shadow-xl border border-stone-200 hidden group-hover:block touch-hide p-5 animate-fadeIn text-stone-900 z-50">
                 <p className="text-[10px] uppercase tracking-widest text-stone-400 mb-0.5">Signed in as</p>
                 <p className="text-xs text-stone-800 mb-3 truncate font-light border-b border-stone-200 pb-2.5">{session?.user?.email}</p>
                 <div className="flex flex-col space-y-2.5 mb-3.5 border-b border-stone-200 pb-3">

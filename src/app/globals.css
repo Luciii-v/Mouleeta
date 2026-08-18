@@ -106,6 +106,12 @@ body {
       -ms-overflow-style: none;
       scrollbar-width: none;
   }
+  
+  @media (hover: none) {
+    .touch-hide {
+      display: none !important;
+    }
+  }
 }
 
 /* Luxury Product Description Formatting */

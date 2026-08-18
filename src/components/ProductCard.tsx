@@ -190,12 +190,14 @@ export default function ProductCard({ product, lightBg = true, isSpringCollectio
       style={{ rotateX, scale, opacity, filter, zIndex }}
       className="flex flex-col group relative select-none transform-style-3d"
       onMouseEnter={() => {
+        if (typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches) return;
         setIsHovered(true);
         if (rawImages.length > 1) {
           setCurrentImageIndex(1);
         }
       }}
       onMouseLeave={() => {
+        if (typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches) return;
         setIsHovered(false);
         setCurrentImageIndex(0);
       }}

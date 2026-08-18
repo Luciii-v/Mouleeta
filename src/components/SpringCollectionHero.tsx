@@ -77,8 +77,12 @@ function SpringProductCard({ product, index }: { product: any; index: number }) 
   return (
     <div 
       className={`group relative flex flex-col ${index % 2 !== 0 ? 'animate-anti-gravity-stagger' : 'animate-anti-gravity'} hover:[animation-play-state:paused]`}
-      onMouseEnter={() => setIsHovered(true)}
+      onMouseEnter={() => {
+        if (typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches) return;
+        setIsHovered(true);
+      }}
       onMouseLeave={() => {
+        if (typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches) return;
         setIsHovered(false);
         // Ensure autoplay resumes when mouse leaves, clearing any manual pause delays
         if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);

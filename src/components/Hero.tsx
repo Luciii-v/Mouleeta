@@ -44,6 +44,19 @@ export default function Hero() {
           className="object-cover opacity-80 md:opacity-100"
           sizes="100vw"
         />
+        {/* Mobile Video Background - Loaded on mobile phones only */}
+        {!isDesktop && (
+          <video
+            className="absolute inset-0 w-full h-full object-cover opacity-100 pointer-events-none"
+            autoPlay
+            loop
+            muted
+            playsInline
+            {...{ fetchPriority: 'high' } as Record<string, string>}
+          >
+            <source src="/videos/final-home-video-optimized.mp4" type="video/mp4" />
+          </video>
+        )}
         {/* Desktop Video Background - Only loaded on desktop to save mobile bandwidth */}
         {isDesktop && (
           <video
