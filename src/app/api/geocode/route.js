@@ -40,12 +40,21 @@ export async function GET(request) {
       { headers: { "User-Agent": "MouleetaShop/1.0 (support@mouleeta.com)" } }
     );
 
-    const [esriRes, bdcRes, nomRes] = await Promise.all([esriPromise, bdcPromise, nomPromise]);
+    // Photon API is excellent for rural Indian postal codes
+    const photonPromise = fetchWithTimeout(
+      `https://photon.komoot.io/reverse?lon=${lon}&lat=${lat}`
+    );
+
+    const [esriRes, bdcRes, nomRes, photonRes] = await Promise.all([esriPromise, bdcPromise, nomPromise, photonPromise]);
+
+    const photonFeature = photonRes?.features?.[0]?.properties || {};
 
     const detectedCity =
       esriRes?.address?.City ||
       esriRes?.address?.MetroArea ||
       esriRes?.address?.Subregion ||
+      photonFeature?.city ||
+      photonFeature?.town ||
       bdcRes?.city ||
       bdcRes?.locality ||
       nomRes?.address?.city ||
@@ -53,20 +62,44 @@ export async function GET(request) {
       nomRes?.address?.district ||
       nomRes?.address?.county ||
       nomRes?.address?.village ||
+      photonFeature?.name ||
       "";
 
     const detectedState =
       esriRes?.address?.Region ||
+      photonFeature?.state ||
       bdcRes?.principalSubdivision ||
       nomRes?.address?.state ||
       nomRes?.address?.state_district ||
       "";
 
-    const detectedZip =
+    let detectedZip =
       esriRes?.address?.Postal ||
+      photonFeature?.postcode ||
       bdcRes?.postcode ||
       nomRes?.address?.postcode ||
       "";
+
+    // Ultimate fallback for India: If we got the city & state but NO ZIP, query the Indian Postal API
+    if (!detectedZip && detectedCity && detectedState) {
+      try {
+        const pinRes = await fetchWithTimeout(`https://api.postalpincode.in/postoffice/${encodeURIComponent(detectedCity)}`, {}, 2000);
+        if (pinRes && pinRes[0]?.Status === "Success" && pinRes[0]?.PostOffice?.length > 0) {
+          // Find a post office that matches the detected state (to avoid confusing Dadri, UP with Dadri, Haryana)
+          const matchedPO = pinRes[0].PostOffice.find(
+            (po) => po.State?.toLowerCase() === detectedState.toLowerCase() || po.Region?.toLowerCase().includes(detectedState.toLowerCase())
+          );
+          if (matchedPO && matchedPO.Pincode) {
+            detectedZip = matchedPO.Pincode;
+          } else if (pinRes[0].PostOffice[0].Pincode) {
+            // Fallback to the first result if state didn't exactly match
+            detectedZip = pinRes[0].PostOffice[0].Pincode;
+          }
+        }
+      } catch (e) {
+        // Ignore postal fallback failure
+      }
+    }
 
     const detectedRoad =
       esriRes?.address?.Address ||
@@ -75,6 +108,8 @@ export async function GET(request) {
       nomRes?.address?.road ||
       nomRes?.address?.suburb ||
       nomRes?.address?.neighbourhood ||
+      photonFeature?.street ||
+      photonFeature?.district ||
       "";
 
     return NextResponse.json({
