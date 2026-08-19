@@ -72,61 +72,12 @@ export default function AddressesPage() {
         try {
           const { latitude, longitude } = pos.coords;
           
-          const esriPromise = fetch(
-            `https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode?f=json&location=${longitude},${latitude}`
-          )
-            .then((r) => r.json())
-            .catch(() => null);
-
-          const bdcPromise = fetch(
-            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
-          )
-            .then((r) => r.json())
-            .catch(() => null);
-
-          // Browsers forbid setting User-Agent header directly. Use email or useragent in query param for Nominatim.
-          const nomPromise = fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&email=support@mouleeta.com`
-          )
-            .then((r) => r.json())
-            .catch(() => null);
-
-          const [esriRes, bdcRes, nomRes] = await Promise.all([esriPromise, bdcPromise, nomPromise]);
-
-          const detectedCity =
-            esriRes?.address?.City ||
-            esriRes?.address?.MetroArea ||
-            esriRes?.address?.Subregion ||
-            bdcRes?.city ||
-            bdcRes?.locality ||
-            nomRes?.address?.city ||
-            nomRes?.address?.town ||
-            nomRes?.address?.district ||
-            nomRes?.address?.county ||
-            nomRes?.address?.village ||
-            "";
-
-          const detectedState =
-            esriRes?.address?.Region ||
-            bdcRes?.principalSubdivision ||
-            nomRes?.address?.state ||
-            nomRes?.address?.state_district ||
-            "";
-
-          const detectedZip =
-            esriRes?.address?.Postal ||
-            bdcRes?.postcode ||
-            nomRes?.address?.postcode ||
-            "";
-
-          const detectedRoad =
-            esriRes?.address?.Address ||
-            esriRes?.address?.District ||
-            esriRes?.address?.PlaceName ||
-            nomRes?.address?.road ||
-            nomRes?.address?.suburb ||
-            nomRes?.address?.neighbourhood ||
-            "";
+          // Call our server-side proxy to bypass AdBlockers and browser User-Agent restrictions
+          const res = await fetch(`/api/geocode?lat=${latitude}&lon=${longitude}`);
+          if (!res.ok) throw new Error("API failed");
+          
+          const data = await res.json();
+          const { city: detectedCity, state: detectedState, zip: detectedZip, road: detectedRoad } = data;
 
           if (!detectedCity && !detectedState && !detectedZip && !detectedRoad) {
              setPinStatus("Location detected, but unable to resolve city/state details automatically.");
@@ -144,16 +95,17 @@ export default function AddressesPage() {
           const capturedParts = [detectedCity, detectedState, detectedZip ? `(${detectedZip})` : ""].filter(Boolean).join(", ");
           setPinStatus(`✨ Auto-captured: ${capturedParts}`);
         } catch {
-          setPinStatus("Could not detect location details.");
+          setPinStatus("Could not detect location details. Please enter manually.");
         } finally {
           setIsLocating(false);
         }
       },
-      () => {
+      (error) => {
+        console.error("Geolocation error:", error);
+        setPinStatus("Location access denied or timed out.");
         setIsLocating(false);
-        setPinStatus("Location permission denied or unavailable.");
       },
-      { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 }
+      { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 }
     );
   };
 
