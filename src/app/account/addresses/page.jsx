@@ -71,7 +71,7 @@ export default function AddressesPage() {
       async (pos) => {
         try {
           const { latitude, longitude } = pos.coords;
-          // Race multi-engine reverse geocoding (Esri + BigDataCloud + Nominatim) for sub-second instant completion
+          
           const esriPromise = fetch(
             `https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode?f=json&location=${longitude},${latitude}`
           )
@@ -84,9 +84,9 @@ export default function AddressesPage() {
             .then((r) => r.json())
             .catch(() => null);
 
+          // Browsers forbid setting User-Agent header directly. Use email or useragent in query param for Nominatim.
           const nomPromise = fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
-            { headers: { "User-Agent": "MouleetaShop/1.0" } }
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&email=support@mouleeta.com`
           )
             .then((r) => r.json())
             .catch(() => null);
@@ -102,12 +102,15 @@ export default function AddressesPage() {
             nomRes?.address?.city ||
             nomRes?.address?.town ||
             nomRes?.address?.district ||
+            nomRes?.address?.county ||
+            nomRes?.address?.village ||
             "";
 
           const detectedState =
             esriRes?.address?.Region ||
             bdcRes?.principalSubdivision ||
             nomRes?.address?.state ||
+            nomRes?.address?.state_district ||
             "";
 
           const detectedZip =
@@ -122,7 +125,13 @@ export default function AddressesPage() {
             esriRes?.address?.PlaceName ||
             nomRes?.address?.road ||
             nomRes?.address?.suburb ||
+            nomRes?.address?.neighbourhood ||
             "";
+
+          if (!detectedCity && !detectedState && !detectedZip && !detectedRoad) {
+             setPinStatus("Location detected, but unable to resolve city/state details automatically.");
+             return;
+          }
 
           setNewAddr((prev) => ({
             ...prev,
@@ -132,7 +141,8 @@ export default function AddressesPage() {
             address1: prev.address1 || detectedRoad,
           }));
 
-          setPinStatus(`✨ Auto-captured location: ${detectedCity}${detectedState ? `, ${detectedState}` : ""}${detectedZip ? ` (${detectedZip})` : ""}`);
+          const capturedParts = [detectedCity, detectedState, detectedZip ? `(${detectedZip})` : ""].filter(Boolean).join(", ");
+          setPinStatus(`✨ Auto-captured: ${capturedParts}`);
         } catch {
           setPinStatus("Could not detect location details.");
         } finally {
