@@ -103,7 +103,14 @@ export default function Header() {
           >
             <Link
               href="/shop"
-              onClick={() => setIsHoveringShop(false)}
+              onClick={(e) => {
+                if (typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches) {
+                  e.preventDefault();
+                  setIsHoveringShop(prev => !prev);
+                } else {
+                  setIsHoveringShop(false);
+                }
+              }}
               className={`font-inter text-[11px] font-semibold uppercase tracking-[0.18em] transition-colors cursor-pointer ${textColorClass}`}
             >
               Shop
