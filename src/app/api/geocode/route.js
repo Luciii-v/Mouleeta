@@ -49,7 +49,7 @@ export async function GET(request) {
 
     const photonFeature = photonRes?.features?.[0]?.properties || {};
 
-    const detectedCity =
+    let detectedCity =
       esriRes?.address?.City ||
       esriRes?.address?.MetroArea ||
       esriRes?.address?.Subregion ||
@@ -111,6 +111,13 @@ export async function GET(request) {
       photonFeature?.street ||
       photonFeature?.district ||
       "";
+
+    // NCR Region Normalization: Administrative Tehsils vs Colloquial Cities
+    if (detectedCity.toLowerCase() === "dadri") {
+      if (detectedZip === "201009" || detectedZip.startsWith("2013") || bdcRes?.locality?.toLowerCase().includes("noida")) {
+        detectedCity = "Greater Noida";
+      }
+    }
 
     return NextResponse.json({
       city: detectedCity,
