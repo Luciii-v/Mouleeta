@@ -189,10 +189,10 @@ async function shopifyFetch<T>({
       throw new Error(body.errors[0].message);
     }
 
-    const OUT_OF_STOCK_HANDLES = [
-      'tie-n-dye-cotton-maxi-dress',
-      'tie-n-dye-cotton-front-open-maxi-dress',
-      'cotton-pintuck-mini-dress'
+    const OUT_OF_STOCK_TITLES = [
+      'TIE N DYE COTTON MAXI DRESS',
+      'TIE N DYE COTTON FRONT OPEN MAXI DRESS',
+      'COTTON PINTUCK MINI DRESS'
     ];
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -201,7 +201,7 @@ async function shopifyFetch<T>({
       if (Array.isArray(obj)) {
         obj.forEach(applyStockOverrides);
       } else if (typeof obj === 'object' && obj !== null) {
-        if (obj.handle && OUT_OF_STOCK_HANDLES.includes(obj.handle.toLowerCase())) {
+        if (obj.title && OUT_OF_STOCK_TITLES.includes(obj.title.toUpperCase())) {
           if (obj.variants && obj.variants.edges) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             obj.variants.edges.forEach((edge: any) => {
