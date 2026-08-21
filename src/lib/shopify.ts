@@ -189,6 +189,35 @@ async function shopifyFetch<T>({
       throw new Error(body.errors[0].message);
     }
 
+    const OUT_OF_STOCK_HANDLES = [
+      'tie-n-dye-cotton-maxi-dress',
+      'tie-n-dye-cotton-front-open-maxi-dress',
+      'cotton-pintuck-mini-dress'
+    ];
+
+    function applyStockOverrides(obj: any) {
+      if (!obj) return;
+      if (Array.isArray(obj)) {
+        obj.forEach(applyStockOverrides);
+      } else if (typeof obj === 'object' && obj !== null) {
+        if (obj.handle && OUT_OF_STOCK_HANDLES.includes(obj.handle.toLowerCase())) {
+          if (obj.variants && obj.variants.edges) {
+            obj.variants.edges.forEach((edge: any) => {
+              if (edge.node) {
+                edge.node.availableForSale = false;
+                if (edge.node.quantityAvailable !== undefined) {
+                  edge.node.quantityAvailable = 0;
+                }
+              }
+            });
+          }
+        }
+        Object.values(obj).forEach(applyStockOverrides);
+      }
+    }
+
+    applyStockOverrides(body.data);
+
     return {
       status: result.status,
       body
