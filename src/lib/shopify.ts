@@ -195,6 +195,7 @@ async function shopifyFetch<T>({
       'cotton-pintuck-mini-dress'
     ];
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     function applyStockOverrides(obj: any) {
       if (!obj) return;
       if (Array.isArray(obj)) {
@@ -202,6 +203,7 @@ async function shopifyFetch<T>({
       } else if (typeof obj === 'object' && obj !== null) {
         if (obj.handle && OUT_OF_STOCK_HANDLES.includes(obj.handle.toLowerCase())) {
           if (obj.variants && obj.variants.edges) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             obj.variants.edges.forEach((edge: any) => {
               if (edge.node) {
                 edge.node.availableForSale = false;
