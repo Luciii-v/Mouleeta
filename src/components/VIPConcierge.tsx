@@ -13,7 +13,7 @@ export default function VIPConcierge({
   productHandle,
   className = ""
 }: VIPConciergeProps) {
-  const phoneNumber = "919876543210"; // Mouleeta Atelier VIP desk
+  const phoneNumber = "919911888029"; // Mouleeta Atelier VIP desk
   const message = `Hello Mouleeta Atelier, I would like to request personal styling and bespoke sizing consultation for the "${productTitle}" (https://mouleeta.shop/products/${productHandle}).`;
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
 
