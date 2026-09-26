@@ -78,7 +78,7 @@ export default function ProductReviews() {
               </h3>
               
               <p className="font-inter text-sm text-stone-600 font-light leading-relaxed mb-6 flex-grow">
-                "{review.content}"
+                &quot;{review.content}&quot;
               </p>
               
               <div className="flex items-center justify-between mt-auto">
