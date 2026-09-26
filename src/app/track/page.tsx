@@ -60,11 +60,7 @@ export default function TrackOrderPage() {
     }
   };
 
-  const loadDemoOrder = (id: string) => {
-    setOrderInput(id);
-    setEmailInput("client@luxury.com");
-  };
-
+  
   return (
     <div className="min-h-screen bg-[#FAF9F6] text-[#1A1A1A] flex flex-col font-inter selection:bg-stone-900 selection:text-white">
       <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-16 md:py-24">
