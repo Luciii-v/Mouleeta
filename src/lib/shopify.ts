@@ -147,7 +147,7 @@ export interface ShopifyCollectionProductEdge {
 /**
  * Custom fetch wrapper to interact with the Shopify Storefront GraphQL API
  */
-async function shopifyFetch<T>({
+export async function shopifyFetch<T>({
   query,
   variables = {},
   cache = 'force-cache',

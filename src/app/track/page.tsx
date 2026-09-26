@@ -122,25 +122,6 @@ export default function TrackOrderPage() {
           </form>
 
           {/* Demo Order Pills */}
-          <div className="mt-6 pt-6 border-t border-stone-100 flex flex-wrap items-center justify-between gap-3 text-xs text-stone-400">
-            <span className="font-metropolis text-[9px] uppercase tracking-widest font-semibold text-stone-500">
-              Try Demo Orders:
-            </span>
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => loadDemoOrder("MOU-8942")}
-                className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-800 font-metropolis text-[9px] uppercase tracking-widest transition-colors cursor-pointer font-medium flex items-center gap-1.5"
-              >
-                <Truck size={12} className="text-amber-700" /> [MOU-8942] In Transit
-              </button>
-              <button
-                onClick={() => loadDemoOrder("MOU-7105")}
-                className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-800 font-metropolis text-[9px] uppercase tracking-widest transition-colors cursor-pointer font-medium flex items-center gap-1.5"
-              >
-                <CheckCircle2 size={12} className="text-emerald-700" /> [MOU-7105] Delivered &amp; Exchangeable
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Tracking Results Area */}
