@@ -15,43 +15,6 @@ interface SearchModalProps {
   onClose: () => void;
 }
 
-// Expanded editorial product database for rich live search
-const searchDatabase = [
-
-  {
-    id: "silk-georgette-evening-gown",
-    title: "Silk Georgette Evening Gown",
-    slug: "silk-georgette-evening-gown",
-    price: 32500,
-    description: "A breathtaking floor-length evening gown draped from raw silk georgette with a plunging open back and hand-rolled hems.",
-    images: ["/georgette-dress.png"],
-    categoryId: "women",
-    subCategoryId: "dresses",
-    inStock: true
-  },
-  {
-    id: "raw-silk-tailored-co-ord",
-    title: "Raw Silk Tailored Co-ord Set",
-    slug: "raw-silk-tailored-co-ord",
-    price: 26900,
-    description: "An effortless two-piece ensemble crafted from heavyweight textured raw silk. Includes structured tunic and relaxed wide-leg trouser.",
-    images: ["/trousers.png"],
-    categoryId: "women",
-    subCategoryId: "pants",
-    inStock: true
-  },
-  {
-    id: "artisanal-linen-kimono-robe",
-    title: "Artisanal Linen Kimono Robe",
-    slug: "artisanal-linen-kimono-robe",
-    price: 21000,
-    description: "Hand-dyed organic European flax linen robe featuring kimono sleeves and a removable waist tie. Designed for resort luxury.",
-    images: ["/linen-shirt.png"],
-    categoryId: "women",
-    subCategoryId: "shirts",
-    inStock: true
-  }
-];
 
 const trendingTags = [
   "Georgette Flow",
@@ -114,12 +77,12 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  const searchDb = products.length > 0 ? products : searchDatabase;
+  
 
   // Filter products by query
   const results = query.trim() === ''
     ? []
-    : searchDb.filter((item) =>
+    : products.filter((item) =>
         item.title.toLowerCase().includes(query.toLowerCase()) ||
         item.description.toLowerCase().includes(query.toLowerCase()) ||
         item.subCategoryId.toLowerCase().includes(query.toLowerCase())
