@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 
 // Shared in-memory OTP store (must match the send route's global store)

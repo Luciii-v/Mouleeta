@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 
 // ─── In-memory stores (replace with Redis/Upstash for multi-instance production) ───
