@@ -14,7 +14,7 @@ import WishlistButton from '@/components/WishlistButton';
 import FitConciergeModal from '@/components/FitConciergeModal';
 import VIPConcierge from '@/components/VIPConcierge';
 import RecentlyViewed from '@/components/RecentlyViewed';
-import ProductReviews from '@/components/ProductReviews';
+
 
 
 interface VariantNode {
@@ -760,7 +760,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
         }}
       />
 
-      <ProductReviews />
+      
 
       {/* Sticky Mobile "Add to Cart" Bar */}
       <div className="md:hidden fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-md border-t border-onyx/10 p-4 z-50 flex items-center justify-between gap-4 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
