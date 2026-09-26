@@ -165,21 +165,21 @@ export default function Footer() {
         </div>
 
         <div className="flex flex-col gap-3">
-          <h4 className="text-white font-jost tracking-widest uppercase text-xs mb-2">Shop</h3>
+          <h3 className="text-white font-jost tracking-widest uppercase text-xs mb-2">Shop</h3>
           <Link href="/shop" className="hover:text-white transition-colors">New Arrivals</Link>
           <Link href="/shop" className="hover:text-white transition-colors">All Products</Link>
           <Link href="/collections/dresses" className="hover:text-white transition-colors">Dresses</Link>
         </div>
 
         <div className="flex flex-col gap-3">
-          <h4 className="text-white font-jost tracking-widest uppercase text-xs mb-2">About</h3>
+          <h3 className="text-white font-jost tracking-widest uppercase text-xs mb-2">About</h3>
           <Link href="/about" className="hover:text-white transition-colors">Our Story</Link>
           <Link href="/philosophy" className="hover:text-white transition-colors">Sustainability</Link>
           <Link href="/contact" className="hover:text-white transition-colors">Contact</Link>
         </div>
 
         <div className="flex flex-col gap-3">
-          <h4 className="text-white font-jost tracking-widest uppercase text-xs mb-2">Help</h3>
+          <h3 className="text-white font-jost tracking-widest uppercase text-xs mb-2">Help</h3>
           <Link href="/track" className="hover:text-white transition-colors text-amber-200 font-medium">Track Order &amp; Returns</Link>
           <Link href="/policies/shipping" className="hover:text-white transition-colors">Shipping</Link>
           <Link href="/policies/returns" className="hover:text-white transition-colors">Returns</Link>

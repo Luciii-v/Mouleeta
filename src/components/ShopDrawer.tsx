@@ -64,7 +64,7 @@ export default function ShopDrawer({
           isOpen ? 'opacity-100' : 'opacity-0'
         }`}
         onClick={onClose}
-        aria-label="Close menu overlay"
+        
       />
 
       {/* Fixed left-side panel with slide-in animation */}

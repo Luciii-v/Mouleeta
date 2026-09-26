@@ -80,7 +80,7 @@ export default async function ProductPage({ params }: Props) {
     "name": product.title,
     "description": stripHtml(product.descriptionHtml) || 'Discover consciously crafted luxury from MOULEETA.',
     "image": product.images.edges[0]?.node?.url,
-    "sku": product.variants.edges[0]?.node?.sku || product.handle,
+    "sku": product.id || product.handle,
     "brand": {
       "@type": "Brand",
       "name": "MOULEETA"
@@ -91,7 +91,7 @@ export default async function ProductPage({ params }: Props) {
       "priceCurrency": product.priceRange.minVariantPrice.currencyCode || 'INR',
       "price": product.priceRange.minVariantPrice.amount,
       "itemCondition": "https://schema.org/NewCondition",
-      "availability": product.availableForSale ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      "availability": product.variants.edges.some(edge => edge.node.availableForSale) ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       "seller": {
         "@type": "Organization",
         "name": "MOULEETA"
