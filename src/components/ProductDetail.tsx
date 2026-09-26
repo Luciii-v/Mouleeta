@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCartStore } from '@/store/useCartStore';
 import { ShoppingBag, ArrowLeft, Truck, ChevronDown, ChevronUp, Leaf, Ruler, Sparkles } from 'lucide-react';
+import { toast } from 'sonner';
 import Link from 'next/link';
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -300,6 +301,11 @@ export default function ProductDetail({ product }: ProductDetailProps) {
       size: !hasShopifyVariants && allColors.length > 0
         ? `${selectedColor} / ${selectedSize}`
         : (allSizes.length > 0 ? selectedSize : selectedVariant.title),
+    });
+    
+    toast.success('Added to your bespoke collection', {
+      description: `${product.title} has been added to your bag`,
+      duration: 3000,
     });
   };
 

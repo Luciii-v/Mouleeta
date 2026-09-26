@@ -1,129 +1,73 @@
-import type { MetadataRoute } from 'next';
-import { getProducts } from '@/lib/shopify';
+import { MetadataRoute } from 'next';
+import { shopifyFetch } from '@/lib/shopify';
 
 export const dynamic = 'force-dynamic';
 
-const siteUrl = 'https://mouleeta.shop';
-
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Static pages
-  const staticPages: MetadataRoute.Sitemap = [
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mouleeta.shop';
+
+  // Base routes
+  const routes: MetadataRoute.Sitemap = [
     {
-      url: siteUrl,
+      url: baseUrl,
       lastModified: new Date(),
-      changeFrequency: 'weekly',
+      changeFrequency: 'daily',
       priority: 1,
     },
     {
-      url: `${siteUrl}/shop`,
+      url: `${baseUrl}/collections`,
       lastModified: new Date(),
-      changeFrequency: 'weekly',
+      changeFrequency: 'daily',
       priority: 0.9,
     },
     {
-      url: `${siteUrl}/about`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.6,
-    },
-    {
-      url: `${siteUrl}/philosophy`,
+      url: `${baseUrl}/about`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.5,
     },
     {
-      url: `${siteUrl}/sustainability`,
+      url: `${baseUrl}/contact`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.5,
-    },
-    {
-      url: `${siteUrl}/contact`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-    {
-      url: `${siteUrl}/journal`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.6,
-    },
-    {
-      url: `${siteUrl}/wishlist`,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 0.4,
-    },
-    {
-      url: `${siteUrl}/track`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.4,
-    },
-    // Policy pages
-    {
-      url: `${siteUrl}/policies/privacy`,
-      lastModified: new Date(),
-      changeFrequency: 'yearly',
-      priority: 0.3,
-    },
-    {
-      url: `${siteUrl}/policies/terms`,
-      lastModified: new Date(),
-      changeFrequency: 'yearly',
-      priority: 0.3,
-    },
-    {
-      url: `${siteUrl}/policies/shipping`,
-      lastModified: new Date(),
-      changeFrequency: 'yearly',
-      priority: 0.3,
-    },
-    {
-      url: `${siteUrl}/policies/returns`,
-      lastModified: new Date(),
-      changeFrequency: 'yearly',
-      priority: 0.3,
     },
   ];
 
-  // Collection pages
-  const collectionHandles = [
-    'new-arrivals',
-    'shirts',
-    'dresses',
-    'trousers',
-    'co-ords',
-    'the-signature-edit',
-    'minimalist-resortwear',
-    'monochrome-story',
-    'artisanal-woven-series',
-  ];
-
-  const collectionPages: MetadataRoute.Sitemap = collectionHandles.map(
-    (handle) => ({
-      url: `${siteUrl}/collections/${handle}`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.8,
-    })
-  );
-
-  // Dynamic product pages from Shopify
-  let productPages: MetadataRoute.Sitemap = [];
   try {
-    const products = await getProducts();
-    productPages = products.map((product) => ({
-      url: `${siteUrl}/products/${product.handle}`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
-    }));
-  } catch {
-    // If Shopify fetch fails, sitemap still works with static pages
-  }
+    // Fetch all products
+    const query = `
+      query getAllProducts {
+        products(first: 250) {
+          edges {
+            node {
+              handle
+              updatedAt
+            }
+          }
+        }
+      }
+    `;
 
-  return [...staticPages, ...collectionPages, ...productPages];
+    const res = await shopifyFetch<{ data: { products: { edges: Array<{ node: { handle: string; updatedAt: string } }> } } }>({
+      query,
+      cache: 'force-cache',
+      tags: ['products']
+    });
+
+    const products = res.body?.data?.products?.edges || [];
+
+    // Map products to sitemap entries
+    const productRoutes: MetadataRoute.Sitemap = products.map((edge) => ({
+      url: `${baseUrl}/products/${edge.node.handle}`,
+      lastModified: new Date(edge.node.updatedAt),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    }));
+
+    return [...routes, ...productRoutes];
+  } catch (error) {
+    console.error('Failed to generate sitemap:', error);
+    return routes;
+  }
 }

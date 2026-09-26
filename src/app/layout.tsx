@@ -10,6 +10,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import MemoryDock from '@/components/MemoryDock';
 import CookieConsentToast from '@/components/CookieConsentToast';
+import { Toaster } from 'sonner';
 import FloatingActionHub from '@/components/FloatingActionHub';
 import { getCollectionProducts } from '@/lib/shopify';
 
@@ -114,7 +115,21 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </main>
           <Footer />
         </AuthProvider>
+        <Toaster 
+          position="bottom-right" 
+          toastOptions={{
+            style: {
+              background: '#1A1A1A',
+              color: '#F9F8F6',
+              border: '1px solid #333',
+              borderRadius: '0px',
+              fontFamily: 'var(--font-inter)',
+              letterSpacing: '0.05em',
+            }
+          }} 
+        />
       </body>
     </html>
+
   );
 }
