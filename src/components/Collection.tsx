@@ -121,7 +121,7 @@ export default function Collection({ products }: CollectionProps) {
         
         {/* Section Header */}
         <div className="flex flex-col items-center justify-center mb-16 text-center">
-          <span className="font-metropolis font-light text-[10px] md:text-[11px] uppercase tracking-[0.25em] text-[#1A1A1A]/50 block mb-3">
+          <span className="font-metropolis font-light text-[10px] md:text-[11px] uppercase tracking-[0.25em] text-[#1A1A1A]/70 block mb-3">
             New Arrivals
           </span>
           <h2 className="font-jost font-light text-2xl sm:text-3xl md:text-[36px] text-[#1A1A1A] tracking-[0.25em] uppercase leading-none">

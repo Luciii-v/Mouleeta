@@ -13,6 +13,8 @@ import WishlistButton from '@/components/WishlistButton';
 import FitConciergeModal from '@/components/FitConciergeModal';
 import VIPConcierge from '@/components/VIPConcierge';
 import RecentlyViewed from '@/components/RecentlyViewed';
+import ProductReviews from '@/components/ProductReviews';
+import { Star } from 'lucide-react';
 
 interface VariantNode {
   id: string;
@@ -92,51 +94,23 @@ export default function ProductDetail({ product, allProducts }: ProductDetailPro
     )?.value || '';
   };
 
-  // Local config for active products if Shopify variants are missing
-  const LOCAL_PRODUCT_COLORS: Record<string, string[]> = {
-    'collar-dress': ['Blue', 'Pink'],
-    'backless-top': ['Blue', 'Pink'],
-    'backless-dress': ['Blue', 'Pink'],
-    'slit-dress': ['Blue', 'Pink'],
-    'short-dress': ['Blue', 'Pink'],
-    'blue-bag': ['Blue', 'Pink'],
-    'pink-bag': ['Blue', 'Pink'],
-    'bag': ['Blue', 'Pink'],
-    'tie-n-dye': ['Pink', 'Green'],
-    'co-ord-sets': ['Blue', 'Pink']
-  };
 
-  const LOCAL_PRODUCT_SIZES: Record<string, string[]> = {
-    'collar-dress': ['S', 'M', 'L'],
-    'backless-top': ['S', 'M', 'L'],
-    'backless-dress': ['S', 'M', 'L']
-  };
 
   // Check if Shopify has real variants
   const hasShopifyVariants = allVariants.length > 1 || (allVariants[0] && allVariants[0].title !== 'Default Title');
 
   // Find all unique color and size option values
-  const allColors = (hasShopifyVariants 
-    ? Array.from(new Set(allVariants.map(v => getOptionValue(v, 'color')).filter(Boolean)))
-    : (LOCAL_PRODUCT_COLORS[product.handle] || [])).filter(c => c.toLowerCase() !== 'dots');
+  const allColors = Array.from(new Set(allVariants.map(v => getOptionValue(v, 'color')).filter(Boolean))).filter(c => c.toLowerCase() !== 'dots');
 
-  const allSizes = hasShopifyVariants 
-    ? Array.from(new Set(allVariants.map(v => getOptionValue(v, 'size')).filter(Boolean)))
-    : (LOCAL_PRODUCT_SIZES[product.handle] || []);
+  const allSizes = Array.from(new Set(allVariants.map(v => getOptionValue(v, 'size')).filter(Boolean)));
 
   // Selected Color and Size state
   const [selectedColor, setSelectedColor] = useState<string>(() => {
-    if (hasShopifyVariants) {
-      return getOptionValue(selectedVariant, 'color') || allColors[0] || '';
-    }
-    return allColors[0] || '';
+    return getOptionValue(selectedVariant, 'color') || allColors[0] || '';
   });
 
   const [selectedSize, setSelectedSize] = useState<string>(() => {
-    if (hasShopifyVariants) {
-      return getOptionValue(selectedVariant, 'size') || allSizes[0] || '';
-    }
-    return allSizes[0] || '';
+    return getOptionValue(selectedVariant, 'size') || allSizes[0] || '';
   });
 
   const [showSizeWarning, setShowSizeWarning] = useState(false);
@@ -175,13 +149,11 @@ export default function ProductDetail({ product, allProducts }: ProductDetailPro
   const handleSizeSelect = (sizeValue: string) => {
     setSelectedSize(sizeValue);
     
-    if (hasShopifyVariants) {
-      const match = allVariants.find(
-        (v) => getOptionValue(v, 'color') === selectedColor && getOptionValue(v, 'size') === sizeValue
-      );
-      if (match) {
-        setSelectedVariant(match);
-      }
+    const match = allVariants.find(
+      (v) => getOptionValue(v, 'color') === selectedColor && getOptionValue(v, 'size') === sizeValue
+    );
+    if (match) {
+      setSelectedVariant(match);
     }
     setShowSizeWarning(false);
   };
@@ -283,16 +255,7 @@ export default function ProductDetail({ product, allProducts }: ProductDetailPro
 
     // First, try to see if the URL actually contains the color name (e.g., 'green' or 'pink')
     const explicitMatches = rawImages.filter(url => url.toLowerCase().includes(colorLower));
-    if (explicitMatches.length > 0) return explicitMatches;
-
-    // Fallback for mock data where only 'pink' is labeled in the URL and the rest are the alternate color
-    if (colorLower === 'pink') {
-      const pinkImages = rawImages.filter(url => url.toLowerCase().includes('pink'));
-      return pinkImages.length > 0 ? pinkImages : rawImages;
-    } else {
-      const nonPinkImages = rawImages.filter(url => !url.toLowerCase().includes('pink'));
-      return nonPinkImages.length > 0 ? nonPinkImages : rawImages;
-    }
+    return explicitMatches.length > 0 ? explicitMatches : rawImages;
   };
 
   const images = (allColors.length > 0 ? getImagesForColor(selectedColor) : rawImages).length > 0
@@ -590,18 +553,35 @@ export default function ProductDetail({ product, allProducts }: ProductDetailPro
             )}
           </AnimatePresence>
 
+          
+          {/* Low Stock Indicator */}
+          {selectedVariant?.availableForSale && (
+            <div className="flex items-center gap-2 mb-4">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+              </span>
+              <span className="font-inter text-xs font-medium text-stone-600">
+                High demand. Only a few left in stock.
+              </span>
+            </div>
+          )}
+
           {/* ADD TO BAG & WISHLIST (Desktop Only) */}
           <div className="hidden md:flex items-center gap-3 mb-8">
             <div className="flex-1">
               <MagneticButton strength={20} className="w-full">
-                <button
+                <motion.button
                   onClick={handleAddToBag}
                   disabled={!selectedVariant?.availableForSale}
-                  className="w-full flex bg-[#1A1A1A] text-[#FDFBF7] font-metropolis font-light text-[11px] uppercase tracking-[0.25em] py-5 hover:bg-[#1A1A1A]/95 transition-all duration-300 rounded-none cursor-pointer border-none items-center justify-center gap-2.5 shadow-xs hover:-translate-y-1 hover:shadow-xl hover:bg-stone-800 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  className="w-full flex bg-[#1A1A1A] text-[#FDFBF7] font-metropolis font-light text-[11px] uppercase tracking-[0.25em] py-5 rounded-none cursor-pointer border-none items-center justify-center gap-2.5 shadow-xs hover:shadow-xl hover:bg-stone-800 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ShoppingBag size={14} strokeWidth={2} />
                   {selectedVariant?.availableForSale ? 'Add To Bag' : 'Out of Stock'}
-                </button>
+                </motion.button>
               </MagneticButton>
             </div>
             <WishlistButton 
@@ -774,6 +754,8 @@ export default function ProductDetail({ product, allProducts }: ProductDetailPro
         }}
       />
 
+      <ProductReviews />
+
       {/* Sticky Mobile "Add to Cart" Bar */}
       <div className="md:hidden fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-md border-t border-onyx/10 p-4 z-50 flex items-center justify-between gap-4 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
         <div className="flex flex-col">
@@ -793,13 +775,16 @@ export default function ProductDetail({ product, allProducts }: ProductDetailPro
             size={18}
             className="p-2.5 border border-stone-300 rounded-none bg-white"
           />
-          <button
+          <motion.button
             onClick={handleAddToBag}
             disabled={!selectedVariant?.availableForSale}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
             className="bg-[#1A1A1A] text-[#FDFBF7] font-metropolis font-light text-[10px] uppercase tracking-[0.2em] px-6 py-3 rounded-none cursor-pointer border-none flex items-center gap-2 disabled:opacity-50"
           >
             {selectedVariant?.availableForSale ? 'Add To Bag' : 'Out of Stock'}
-          </button>
+          </motion.button>
         </div>
       </div>
 

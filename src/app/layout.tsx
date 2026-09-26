@@ -62,6 +62,42 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en">
+
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "MOULEETA",
+              "url": "https://www.mouleeta.shop",
+              "logo": "https://www.mouleeta.shop/images/og-image.jpg",
+              "description": "Premium, consciously crafted organic fashion and streetwear.",
+              "sameAs": [
+                "https://instagram.com/mouleeta.shop"
+              ]
+            })
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "name": "MOULEETA",
+              "url": "https://www.mouleeta.shop",
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": "https://www.mouleeta.shop/search?q={search_term_string}",
+                "query-input": "required name=search_term_string"
+              }
+            })
+          }}
+        />
+      </head>
+
       {/* Inject font variables into the body */}
       <body className={`${inter.variable} ${jost.variable} ${metropolisFallback.variable} ${playfair.variable} font-inter antialiased min-h-full flex flex-col`}>
         <AuthProvider>

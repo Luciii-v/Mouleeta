@@ -100,6 +100,7 @@ function SpringProductCard({ product, index }: { product: any; index: number }) 
         {/* Left Arrow */}
         {images.length > 1 && (
           <button 
+            aria-label="Previous image"
             onClick={(e) => handleManualSwipe('prev', e)}
             onTouchEnd={(e) => handleManualSwipe('prev', e)}
             className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-white cursor-pointer shadow-sm"
@@ -111,6 +112,7 @@ function SpringProductCard({ product, index }: { product: any; index: number }) 
         {/* Right Arrow */}
         {images.length > 1 && (
           <button 
+            aria-label="Next image"
             onClick={(e) => handleManualSwipe('next', e)}
             onTouchEnd={(e) => handleManualSwipe('next', e)}
             className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-white cursor-pointer shadow-sm"

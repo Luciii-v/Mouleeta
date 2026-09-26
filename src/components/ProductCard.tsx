@@ -19,24 +19,7 @@ interface ProductCardProps {
   isSpringCollection?: boolean;
 }
 
-const LOCAL_PRODUCT_COLORS: Record<string, string[]> = {
-  'collar-dress': ['Blue', 'Pink'],
-  'backless-top': ['Blue', 'Pink'],
-  'backless-dress': ['Blue', 'Pink'],
-  'slit-dress': ['Blue', 'Pink'],
-  'short-dress': ['Blue', 'Pink'],
-  'blue-bag': ['Blue', 'Pink'],
-  'pink-bag': ['Blue', 'Pink'],
-  'bag': ['Blue', 'Pink'],
-  'tie-n-dye': ['Pink', 'Green'],
-  'co-ord-sets': ['Blue', 'Pink']
-};
 
-const LOCAL_PRODUCT_SIZES: Record<string, string[]> = {
-  'collar-dress': ['S', 'M', 'L'],
-  'backless-top': ['S', 'M', 'L'],
-  'backless-dress': ['S', 'M', 'L']
-};
 
 export default function ProductCard({ product, lightBg = true, isSpringCollection = false }: ProductCardProps) {
   const { status } = useSession();
@@ -58,15 +41,15 @@ export default function ProductCard({ product, lightBg = true, isSpringCollectio
 
   const hasShopifyVariants = allVariants.length > 1 || (allVariants[0] && allVariants[0].title !== 'Default Title');
 
-  const allColors = ((hasShopifyVariants 
+  const allColors = (
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ? Array.from(new Set(allVariants.map((v: any) => getOptionValue(v, 'color')).filter(Boolean)))
-    : (LOCAL_PRODUCT_COLORS[product.handle] || [])) as string[]).filter(c => c.toLowerCase() !== 'dots');
+    Array.from(new Set(allVariants.map((v: any) => getOptionValue(v, 'color')).filter(Boolean))) as string[]
+  ).filter(c => c.toLowerCase() !== 'dots');
 
-  const allSizes = (hasShopifyVariants 
+  const allSizes = (
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ? Array.from(new Set(allVariants.map((v: any) => getOptionValue(v, 'size')).filter(Boolean)))
-    : (LOCAL_PRODUCT_SIZES[product.handle] || [])) as string[];
+    Array.from(new Set(allVariants.map((v: any) => getOptionValue(v, 'size')).filter(Boolean))) as string[]
+  );
 
   const [selectedColor, setSelectedColor] = useState<string>(allColors[0] || '');
   const [isAdded, setIsAdded] = useState(false);
@@ -80,15 +63,7 @@ export default function ProductCard({ product, lightBg = true, isSpringCollectio
   const getImagesForColor = (color: string) => {
     const colorLower = color.toLowerCase();
     const explicitMatches = rawImages.filter(url => url.toLowerCase().includes(colorLower));
-    if (explicitMatches.length > 0) return explicitMatches;
-
-    if (colorLower === 'pink') {
-      const pinkImages = rawImages.filter(url => url.toLowerCase().includes('pink'));
-      return pinkImages.length > 0 ? pinkImages : rawImages;
-    } else {
-      const nonPinkImages = rawImages.filter(url => !url.toLowerCase().includes('pink'));
-      return nonPinkImages.length > 0 ? nonPinkImages : rawImages;
-    }
+    return explicitMatches.length > 0 ? explicitMatches : rawImages;
   };
 
   const colorImages = allColors.length > 0 ? getImagesForColor(selectedColor) : rawImages;
@@ -248,6 +223,7 @@ export default function ProductCard({ product, lightBg = true, isSpringCollectio
         {/* Left Arrow (Only for Spring Collection) */}
         {isSpringCollection && rawImages.length > 1 && (
           <button 
+            aria-label="Previous image"
             onClick={(e) => handleManualSwipe('prev', e)}
             onTouchEnd={(e) => handleManualSwipe('prev', e)}
             className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/70 backdrop-blur-sm opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 hover:bg-white cursor-pointer shadow-sm"
@@ -259,6 +235,7 @@ export default function ProductCard({ product, lightBg = true, isSpringCollectio
         {/* Right Arrow (Only for Spring Collection) */}
         {isSpringCollection && rawImages.length > 1 && (
           <button 
+            aria-label="Next image"
             onClick={(e) => handleManualSwipe('next', e)}
             onTouchEnd={(e) => handleManualSwipe('next', e)}
             className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/70 backdrop-blur-sm opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 hover:bg-white cursor-pointer shadow-sm"

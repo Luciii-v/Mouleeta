@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { getProductByHandle, getProducts } from '@/lib/shopify';
-import SandboxProductDetail from '@/components/SandboxProductDetail';
+import ProductDetail from '@/components/ProductDetail';
 
 interface Props {
   params: Promise<{
@@ -73,9 +73,41 @@ export default async function ProductPage({ params }: Props) {
     );
   }
 
+  
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": product.title,
+    "description": stripHtml(product.descriptionHtml) || 'Discover consciously crafted luxury from MOULEETA.',
+    "image": product.images.edges[0]?.node?.url,
+    "sku": product.variants.edges[0]?.node?.sku || product.handle,
+    "brand": {
+      "@type": "Brand",
+      "name": "MOULEETA"
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": `${siteUrl}/products/${product.handle}`,
+      "priceCurrency": product.priceRange.minVariantPrice.currencyCode || 'INR',
+      "price": product.priceRange.minVariantPrice.amount,
+      "itemCondition": "https://schema.org/NewCondition",
+      "availability": product.availableForSale ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      "seller": {
+        "@type": "Organization",
+        "name": "MOULEETA"
+      }
+    }
+  };
+
   return (
     <main className="min-h-screen bg-[#FDFBF7]">
-      <SandboxProductDetail product={product} />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
+
+      <ProductDetail product={product} />
     </main>
   );
 }

@@ -27,6 +27,7 @@ export default function FloatingActionHub() {
           >
             {actionItems.map((item, i) => (
               <motion.button
+        aria-label="Open actions menu"
                 key={item.label}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -47,6 +48,7 @@ export default function FloatingActionHub() {
       </AnimatePresence>
 
       <motion.button
+        aria-label="Open actions menu"
         onClick={toggle}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}

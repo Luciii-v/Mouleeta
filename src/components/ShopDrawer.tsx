@@ -58,6 +58,8 @@ export default function ShopDrawer({
     >
       {/* Dark, semi-transparent backdrop overlay covering the rest of the screen */}
       <div
+        role="button"
+        aria-label="Close menu"
         className={`fixed inset-0 bg-black/40 z-40 transition-opacity duration-500 ease-in-out ${
           isOpen ? 'opacity-100' : 'opacity-0'
         }`}

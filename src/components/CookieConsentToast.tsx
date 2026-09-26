@@ -31,7 +31,7 @@ export default function CookieConsentToast() {
           className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-3rem)] max-w-sm bg-[#1A1A1A] text-white p-6 shadow-2xl flex flex-col gap-4"
         >
           <div className="flex flex-col gap-2">
-            <h4 className="font-jost text-xs uppercase tracking-[0.2em]">Cookie Policy</h4>
+            <h2 className="font-jost text-xs uppercase tracking-[0.2em]">Cookie Policy</h2>
             <p className="font-inter text-[11px] text-gray-400 font-light leading-relaxed">
               We use essential cookies to elevate your browsing experience and personalize our editorial content. 
             </p>

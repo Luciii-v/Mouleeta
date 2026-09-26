@@ -114,7 +114,7 @@ export default function Footer() {
             <Leaf size={22} strokeWidth={1} />
           </div>
           <div className="flex flex-col gap-1">
-            <h4 className="font-jost uppercase tracking-[0.2em] text-xs text-white">Organic Materials</h4>
+            <h3 className="font-jost uppercase tracking-[0.2em] text-xs text-white">Organic Materials</h3>
             <p className="font-inter text-xs text-gray-500 font-light max-w-xs">Consciously sourced fabrics designed for zero waste.</p>
           </div>
         </div>
@@ -124,7 +124,7 @@ export default function Footer() {
             <Shield size={22} strokeWidth={1} />
           </div>
           <div className="flex flex-col gap-1">
-            <h4 className="font-jost uppercase tracking-[0.2em] text-xs text-white">Lifetime Guarantee</h4>
+            <h3 className="font-jost uppercase tracking-[0.2em] text-xs text-white">Lifetime Guarantee</h3>
             <p className="font-inter text-xs text-gray-500 font-light max-w-xs">Built to last. Free repairs on all items for life.</p>
           </div>
         </div>
@@ -134,7 +134,7 @@ export default function Footer() {
             <Truck size={22} strokeWidth={1} />
           </div>
           <div className="flex flex-col gap-1">
-            <h4 className="font-jost uppercase tracking-[0.2em] text-xs text-white">Carbon Neutral</h4>
+            <h3 className="font-jost uppercase tracking-[0.2em] text-xs text-white">Carbon Neutral</h3>
             <p className="font-inter text-xs text-gray-500 font-light max-w-xs">Complimentary, offset shipping worldwide.</p>
           </div>
         </div>
@@ -165,21 +165,21 @@ export default function Footer() {
         </div>
 
         <div className="flex flex-col gap-3">
-          <h4 className="text-white font-jost tracking-widest uppercase text-xs mb-2">Shop</h4>
+          <h4 className="text-white font-jost tracking-widest uppercase text-xs mb-2">Shop</h3>
           <Link href="/shop" className="hover:text-white transition-colors">New Arrivals</Link>
           <Link href="/shop" className="hover:text-white transition-colors">All Products</Link>
           <Link href="/collections/dresses" className="hover:text-white transition-colors">Dresses</Link>
         </div>
 
         <div className="flex flex-col gap-3">
-          <h4 className="text-white font-jost tracking-widest uppercase text-xs mb-2">About</h4>
+          <h4 className="text-white font-jost tracking-widest uppercase text-xs mb-2">About</h3>
           <Link href="/about" className="hover:text-white transition-colors">Our Story</Link>
           <Link href="/philosophy" className="hover:text-white transition-colors">Sustainability</Link>
           <Link href="/contact" className="hover:text-white transition-colors">Contact</Link>
         </div>
 
         <div className="flex flex-col gap-3">
-          <h4 className="text-white font-jost tracking-widest uppercase text-xs mb-2">Help</h4>
+          <h4 className="text-white font-jost tracking-widest uppercase text-xs mb-2">Help</h3>
           <Link href="/track" className="hover:text-white transition-colors text-amber-200 font-medium">Track Order &amp; Returns</Link>
           <Link href="/policies/shipping" className="hover:text-white transition-colors">Shipping</Link>
           <Link href="/policies/returns" className="hover:text-white transition-colors">Returns</Link>
