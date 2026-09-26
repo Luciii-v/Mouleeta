@@ -20,7 +20,7 @@ export async function GET(request) {
         clearTimeout(id);
         if (!response.ok) return null;
         return await response.json();
-      } catch (error) {
+      } catch {
         clearTimeout(id);
         return null;
       }
@@ -96,7 +96,7 @@ export async function GET(request) {
             detectedZip = pinRes[0].PostOffice[0].Pincode;
           }
         }
-      } catch (e) {
+      } catch {
         // Ignore postal fallback failure
       }
     }
@@ -125,7 +125,7 @@ export async function GET(request) {
       zip: detectedZip,
       road: detectedRoad,
     });
-  } catch (error) {
+  } catch {
     console.error("Geocoding proxy error:", error);
     return NextResponse.json({ error: "Failed to resolve location" }, { status: 500 });
   }

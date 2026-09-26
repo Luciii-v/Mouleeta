@@ -20,7 +20,6 @@ export default function ProfilePage() {
   });
   const [showNotification, setShowNotification] = useState(false);
   const [verifiedEmail, setVerifiedEmail] = useState("");
-  const [verifiedPhone, setVerifiedPhone] = useState("");
 
   // Populate form from profile once available
   useEffect(() => {

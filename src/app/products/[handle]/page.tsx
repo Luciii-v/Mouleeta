@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { getProductByHandle, getProducts } from '@/lib/shopify';
+import { getProductByHandle } from '@/lib/shopify';
 import ProductDetail from '@/components/ProductDetail';
 
 interface Props {

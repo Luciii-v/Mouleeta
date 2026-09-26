@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { getCollectionByHandle, getCollectionProducts } from '@/lib/shopify';
-import SandboxProductCard from '@/components/SandboxProductCard';
+import ProductCard from '@/components/ProductCard';
 import HeroImageFader from '@/components/HeroImageFader';
 import { ChevronDown } from 'lucide-react';
 
@@ -76,7 +76,7 @@ export default async function CollectionPage({ params }: Props) {
   // Fallback if no images found
   if (heroImages.length === 0) heroImages.push('/placeholder.png');
 
-  // Format products for SandboxProductCard
+  // Format products for ProductCard
   const formattedProducts = products.map(p => ({
     node: {
       id: p.node.id,
@@ -129,7 +129,7 @@ export default async function CollectionPage({ params }: Props) {
         {formattedProducts.length === 1 ? (
           <div className="flex flex-col items-center justify-center w-full">
             <div className="w-full max-w-sm mb-16">
-              <SandboxProductCard product={formattedProducts[0].node} lightBg={true} isSpringCollection={false} />
+              <ProductCard product={formattedProducts[0].node} lightBg={true} isSpringCollection={false} />
             </div>
             <div className="py-8 px-12 border border-onyx/10 bg-white/50 backdrop-blur-sm text-center max-w-lg mx-auto">
               <h3 className="font-jost text-[11px] font-semibold uppercase tracking-[0.25em] text-[#1A1A1A]">More styles arriving soon</h3>
@@ -152,7 +152,7 @@ export default async function CollectionPage({ params }: Props) {
               const product = productEdge.node;
               return (
                 <div key={product.id} className="w-full relative group">
-                  <SandboxProductCard product={product} lightBg={true} isSpringCollection={false} />
+                  <ProductCard product={product} lightBg={true} isSpringCollection={false} />
                 </div>
               );
             })}

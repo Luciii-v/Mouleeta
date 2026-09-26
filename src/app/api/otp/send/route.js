@@ -192,8 +192,7 @@ export async function POST(req) {
 
     // ── Dev-mode / Sandbox fallback: show OTP in UI + terminal if no provider configured ──
     const isDevOrSandbox =
-      process.env.NODE_ENV === "development" ||
-      process.env.ENABLE_OTP_SANDBOX === "true";
+      process.env.NODE_ENV === "development";
 
     if (!deliveryResult.sent) {
       console.warn(

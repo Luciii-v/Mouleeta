@@ -1,5 +1,5 @@
 import { getProducts } from '@/lib/shopify';
-import SandboxProductCard from '@/components/SandboxProductCard';
+import ProductCard from '@/components/ProductCard';
 import HeroImageFader from '@/components/HeroImageFader';
 import { ChevronDown } from 'lucide-react';
 
@@ -18,7 +18,7 @@ export default async function ShopPage() {
 
   // Fallback if no images found
   if (heroImages.length === 0) heroImages.push('/placeholder.png');
-  // Format products for SandboxProductCard
+  // Format products for ProductCard
   const formattedProducts = products.map(p => ({
     node: {
       id: p.id,
@@ -84,7 +84,7 @@ export default async function ShopPage() {
               const product = productEdge.node;
               return (
                 <div key={product.id} className="w-full relative group">
-                  <SandboxProductCard product={product} lightBg={true} isSpringCollection={false} />
+                  <ProductCard product={product} lightBg={true} isSpringCollection={false} />
                 </div>
               );
             })}

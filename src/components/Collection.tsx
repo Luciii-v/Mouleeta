@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import {  } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 
 interface CollectionProps {

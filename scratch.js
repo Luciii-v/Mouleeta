@@ -1,43 +1,36 @@
-const domain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN;
-const adminToken = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
-const apiVersion = process.env.SHOPIFY_API_VERSION || '2024-04';
+const domain = 'kvd0hr-0x.myshopify.com';
+const accessToken = '0a5a47b14cf14e856ff1c78d39ca3dc8';
+const apiVersion = '2024-04';
 
-async function run() {
-  const email = "vivaanveermahatha@gmail.com";
-  const searchRes = await fetch(
-    `https://${domain}/admin/api/${apiVersion}/customers/search.json?query=email:${encodeURIComponent(email)}`,
-    {
-      headers: {
-        'X-Shopify-Access-Token': adminToken,
-        'Content-Type': 'application/json',
-      },
-    }
-  );
-  const searchData = await searchRes.json();
-  const existingCustomer = searchData.customers && searchData.customers.length > 0 ? searchData.customers[0] : null;
-
-  if (existingCustomer) {
-    console.log("Customer found:", existingCustomer.id);
-    const updateRes = await fetch(
-      `https://${domain}/admin/api/${apiVersion}/customers/${existingCustomer.id}.json`,
-      {
-        method: 'PUT',
-        headers: {
-          'X-Shopify-Access-Token': adminToken,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          customer: {
-            id: existingCustomer.id,
-            accepts_marketing: true,
-          },
-        }),
+const query = `
+{
+  products(first: 250) {
+    edges {
+      node {
+        title
+        handle
       }
-    );
-    console.log("Update status:", updateRes.status);
-    console.log("Update response:", await updateRes.text());
-  } else {
-    console.log("Customer not found.");
+    }
   }
 }
-run().catch(console.error);
+`;
+
+fetch(`https://${domain}/api/${apiVersion}/graphql.json`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-Shopify-Storefront-Access-Token': accessToken,
+  },
+  body: JSON.stringify({ query }),
+})
+  .then(res => res.json())
+  .then(data => {
+    const products = data.data.products.edges;
+    products.forEach(p => {
+      const title = p.node.title.toLowerCase();
+      if (title.includes('tie n dye') || title.includes('pintuck')) {
+        console.log(`Title: ${p.node.title}, Handle: ${p.node.handle}`);
+      }
+    });
+  })
+  .catch(console.error);

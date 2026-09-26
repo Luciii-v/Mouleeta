@@ -11,7 +11,7 @@ export async function GET() {
 
   // 2. Build the authorization URL
   const scopes = "read_orders,read_customers";
-  const redirectUri = "http://localhost:3000/api/shopify-install/callback";
+  const redirectUri = "https://www.mouleeta.shop/api/shopify-install/callback";
   
   const authUrl = `https://${shop}/admin/oauth/authorize?client_id=${clientId}&scope=${scopes}&redirect_uri=${redirectUri}`;
   

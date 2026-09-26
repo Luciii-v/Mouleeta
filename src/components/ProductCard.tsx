@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -117,7 +117,6 @@ export default function ProductCard({ product, lightBg = true, isSpringCollectio
   };
 
   const textThemeClass = lightBg ? 'text-[#1A1A1A]' : 'text-white';
-  const subtitleThemeClass = lightBg ? 'text-[#1A1A1A]/60' : 'text-neutral-400';
   const borderThemeClass = lightBg ? 'border-onyx/5 bg-[#F5EFE7]/80' : 'border-neutral-900 bg-neutral-950';
 
   const { scrollYProgress } = useScroll({

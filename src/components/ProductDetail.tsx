@@ -14,7 +14,7 @@ import FitConciergeModal from '@/components/FitConciergeModal';
 import VIPConcierge from '@/components/VIPConcierge';
 import RecentlyViewed from '@/components/RecentlyViewed';
 import ProductReviews from '@/components/ProductReviews';
-import { Star } from 'lucide-react';
+
 
 interface VariantNode {
   id: string;
@@ -75,7 +75,7 @@ interface ProductDetailProps {
   };
 }
 
-export default function ProductDetail({ product, allProducts }: ProductDetailProps) {
+export default function ProductDetail({ product }: ProductDetailProps) {
   const { status } = useSession();
   const router = useRouter();
   const addToCart = useCartStore((state) => state.addToCart);
