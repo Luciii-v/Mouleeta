@@ -2,7 +2,7 @@
 // Protects against clickjacking, MIME sniffing, XSS, and data leakage.
 // Firebase Phone Auth requires Google reCAPTCHA and googleapis domains.
 // Vercel v0 flag: removed 'unsafe-eval' from CSP for enhanced security.
-const scriptSrc = "script-src 'self' 'unsafe-inline' https://www.google.com https://www.gstatic.com https://apis.google.com https://recaptchaenterprise.googleapis.com https://*.firebaseapp.com";
+const scriptSrc = "script-src 'self' 'unsafe-inline' https://cdn.shopify.com https://checkout.razorpay.com https://cdn1.judge.me https://judge.me https://*.judge.me;";
 
 const securityHeaders = [
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
@@ -17,11 +17,11 @@ const securityHeaders = [
     value: [
       "default-src 'self'",
       scriptSrc,
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn1.judge.me https://judge.me",
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob: https://cdn.shopify.com https://lh3.googleusercontent.com https://www.gstatic.com",
       "frame-src 'self' https://www.google.com https://recaptcha.google.com https://*.firebaseapp.com https://mouleeta-shop.firebaseapp.com",
-      "connect-src 'self' ws: wss: https://*.googleapis.com https://*.firebaseio.com https://*.firebasedatabase.app wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://api.resend.com https://kvd0hr-0x.myshopify.com https://apiv2.shiprocket.in",
+      "connect-src 'self' ws: wss: https://*.googleapis.com https://*.firebaseio.com https://*.firebasedatabase.app wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://api.resend.com https://kvd0hr-0x.myshopify.com https://apiv2.shiprocket.in https://judge.me",
       "worker-src 'self' blob:",
     ].join("; "),
   },

@@ -10,6 +10,7 @@ interface ProductReviewsProps {
 
 export default function ProductReviews({ productId, productHandle }: ProductReviewsProps) {
   const numericId = productId ? productId.split('/').pop() : '';
+  const [loading, setLoading] = React.useState(true);
 
   useEffect(() => {
     // Re-initialize Judge.me widget when component mounts or product changes
@@ -20,6 +21,13 @@ export default function ProductReviews({ productId, productHandle }: ProductRevi
         (window as any).jdgm.initializeWidget();
       }, 500);
     }
+    
+    // Fallback: If Judge.me doesn't replace the content within 5 seconds, hide our spinner
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 5000);
+    
+    return () => clearTimeout(timer);
   }, [productId]);
 
   if (!productId) return null;
@@ -45,10 +53,12 @@ export default function ProductReviews({ productId, productHandle }: ProductRevi
             data-handle={productHandle}
           >
             {/* Fallback loader while Judge.me connects */}
-            <div className="flex flex-col items-center justify-center h-48 opacity-50">
-              <div className="w-6 h-6 border-2 border-stone-300 border-t-stone-800 rounded-full animate-spin mb-4"></div>
-              <p className="font-jost text-xs tracking-widest uppercase text-stone-500">Connecting Judge.me Reviews...</p>
-            </div>
+            {loading ? (
+              <div className="flex flex-col items-center justify-center h-48 opacity-50">
+                <div className="w-6 h-6 border-2 border-stone-300 border-t-stone-800 rounded-full animate-spin mb-4"></div>
+                <p className="font-jost text-xs tracking-widest uppercase text-stone-500">Connecting Judge.me Reviews...</p>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
