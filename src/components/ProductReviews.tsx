@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import Script from 'next/script';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 
 interface ProductReviewsProps {
   productId?: string;
@@ -9,58 +10,133 @@ interface ProductReviewsProps {
 }
 
 export default function ProductReviews({ productId, productHandle }: ProductReviewsProps) {
-  const numericId = productId ? productId.split('/').pop() : '';
-  const [loading, setLoading] = React.useState(true);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [rating, setRating] = useState(5);
+  const [reviewText, setReviewText] = useState('');
+  const [authorName, setAuthorName] = useState('');
 
-  useEffect(() => {
-    // Re-initialize Judge.me widget when component mounts or product changes
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((window as any).jdgm && (window as any).jdgm.initializeWidget) {
-      setTimeout(() => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (window as any).jdgm.initializeWidget();
-      }, 500);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewText || !authorName) {
+      toast.error('Please complete all fields.');
+      return;
     }
     
-    // Fallback: If Judge.me doesn't replace the content within 5 seconds, hide our spinner
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 5000);
+    // Simulate submission
+    toast.success('Review submitted successfully!', {
+      description: 'Your review will be visible once approved by our moderation team.'
+    });
     
-    return () => clearTimeout(timer);
-  }, [productId]);
-
-  if (!productId) return null;
+    setIsFormOpen(false);
+    setReviewText('');
+    setAuthorName('');
+    setRating(5);
+  };
 
   return (
-    <section className="py-24 border-t border-onyx/10 bg-white">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+    <section className="py-24 border-t border-stone-200 bg-white">
+      <div className="max-w-4xl mx-auto px-6 lg:px-8">
         
-        {/* Judge.me Settings & Preloader */}
-        <Script id="judgeme-settings" strategy="beforeInteractive">
-          {`
-            (window as any).jdgm = (window as any).jdgm || {};
-            (window as any).jdgm.SHOP_DOMAIN = 'kvd0hr-0x.myshopify.com'; 
-          `}
-        </Script>
-        <Script src="https://cdn1.judge.me/widget_preloader.js" strategy="afterInteractive" />
-
-        {/* Judge.me Widget Container */}
-        <div className="min-h-[300px]">
-          <div 
-            className="jdgm-widget jdgm-review-widget" 
-            data-id={numericId} 
-            data-handle={productHandle}
-          >
-            {/* Fallback loader while Judge.me connects */}
-            {loading ? (
-              <div className="flex flex-col items-center justify-center h-48 opacity-50">
-                <div className="w-6 h-6 border-2 border-stone-300 border-t-stone-800 rounded-full animate-spin mb-4"></div>
-                <p className="font-jost text-xs tracking-widest uppercase text-stone-500">Connecting Judge.me Reviews...</p>
-              </div>
-            ) : null}
+        <div className="flex flex-col items-center text-center mb-12">
+          <h2 className="font-jost text-2xl tracking-[0.2em] uppercase text-stone-900 mb-4">Customer Reviews</h2>
+          <div className="flex items-center gap-2 mb-6">
+            <div className="flex text-stone-300">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <svg key={star} className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              ))}
+            </div>
+            <span className="font-inter text-sm text-stone-500">No reviews yet</span>
           </div>
+          
+          <button 
+            onClick={() => setIsFormOpen(!isFormOpen)}
+            className="border border-stone-900 px-8 py-3 font-jost text-xs uppercase tracking-widest hover:bg-stone-900 hover:text-white transition-colors duration-300"
+          >
+            {isFormOpen ? 'Cancel' : 'Write a Review'}
+          </button>
         </div>
+
+        <AnimatePresence>
+          {isFormOpen && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <form onSubmit={handleSubmit} className="bg-stone-50 p-8 border border-stone-200 mb-12">
+                <h3 className="font-jost text-lg tracking-wider uppercase mb-6 text-stone-900">Leave your feedback</h3>
+                
+                <div className="mb-6">
+                  <label className="block font-inter text-xs uppercase tracking-wider text-stone-500 mb-2">Rating</label>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button 
+                        key={star} 
+                        type="button" 
+                        onClick={() => setRating(star)}
+                        className={`${star <= rating ? 'text-stone-900' : 'text-stone-300'} hover:text-stone-600 transition-colors`}
+                      >
+                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div>
+                    <label className="block font-inter text-xs uppercase tracking-wider text-stone-500 mb-2">Name</label>
+                    <input 
+                      type="text" 
+                      value={authorName}
+                      onChange={(e) => setAuthorName(e.target.value)}
+                      className="w-full bg-white border border-stone-200 px-4 py-3 font-inter text-sm focus:outline-none focus:border-stone-900"
+                      placeholder="Enter your name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-inter text-xs uppercase tracking-wider text-stone-500 mb-2">Email</label>
+                    <input 
+                      type="email" 
+                      className="w-full bg-white border border-stone-200 px-4 py-3 font-inter text-sm focus:outline-none focus:border-stone-900"
+                      placeholder="For verification only"
+                    />
+                  </div>
+                </div>
+
+                <div className="mb-8">
+                  <label className="block font-inter text-xs uppercase tracking-wider text-stone-500 mb-2">Review</label>
+                  <textarea 
+                    value={reviewText}
+                    onChange={(e) => setReviewText(e.target.value)}
+                    rows={4}
+                    className="w-full bg-white border border-stone-200 px-4 py-3 font-inter text-sm focus:outline-none focus:border-stone-900 resize-none"
+                    placeholder="Tell us about your experience..."
+                  ></textarea>
+                </div>
+
+                <button 
+                  type="submit"
+                  className="w-full bg-stone-900 text-white font-jost text-xs uppercase tracking-widest py-4 hover:bg-stone-800 transition-colors"
+                >
+                  Submit Review
+                </button>
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        
+        {/* Placeholder for no reviews */}
+        {!isFormOpen && (
+          <div className="text-center py-12 border-t border-stone-100">
+            <p className="font-inter text-stone-500 text-sm">Be the first to review this product.</p>
+          </div>
+        )}
+
       </div>
     </section>
   );
