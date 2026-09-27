@@ -1,6 +1,7 @@
 import React from 'react';
 import { Star, CheckCircle, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 
 const DUMMY_REVIEWS = [
   {
@@ -55,6 +56,7 @@ export default function ProductReviews() {
           </div>
 
           <motion.button 
+            onClick={() => toast('Review System Not Connected', { description: 'Please connect a Shopify Reviews App (like Judge.me) to enable review submissions.' })}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="border border-[#1A1A1A] px-8 py-4 font-metropolis text-[10px] uppercase tracking-[0.2em] hover:bg-[#1A1A1A] hover:text-white transition-colors duration-300 flex items-center gap-2"
