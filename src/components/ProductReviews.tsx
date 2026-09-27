@@ -13,8 +13,10 @@ export default function ProductReviews({ productId, productHandle }: ProductRevi
 
   useEffect(() => {
     // Re-initialize Judge.me widget when component mounts or product changes
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if ((window as any).jdgm && (window as any).jdgm.initializeWidget) {
       setTimeout(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (window as any).jdgm.initializeWidget();
       }, 500);
     }
