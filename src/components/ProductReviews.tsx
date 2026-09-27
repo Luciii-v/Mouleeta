@@ -32,7 +32,7 @@ export default function ProductReviews({ productId, productHandle }: ProductRevi
         <Script id="judgeme-settings" strategy="afterInteractive">
           {`
             (window as any).jdgm = (window as any).jdgm || {};
-            (window as any).jdgm.SHOP_DOMAIN = 'mouleeta.myshopify.com'; 
+            (window as any).jdgm.SHOP_DOMAIN = 'kvd0hr-0x.myshopify.com'; 
           `}
         </Script>
         <Script src="https://cdn1.judge.me/widget_preloader.js" strategy="afterInteractive" />
