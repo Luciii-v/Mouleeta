@@ -37,7 +37,7 @@ export default function ProductReviews({ productId, productHandle }: ProductRevi
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         
         {/* Judge.me Settings & Preloader */}
-        <Script id="judgeme-settings" strategy="afterInteractive">
+        <Script id="judgeme-settings" strategy="beforeInteractive">
           {`
             (window as any).jdgm = (window as any).jdgm || {};
             (window as any).jdgm.SHOP_DOMAIN = 'kvd0hr-0x.myshopify.com'; 
