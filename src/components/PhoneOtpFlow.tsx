@@ -135,8 +135,8 @@ export default function PhoneOtpFlow({ phone, onVerified, onClose, skipSignIn }:
       sendOtpCalledRef.current = true;
       sendOtp();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recaptchaReady, phone]);
+  
+  }, [recaptchaReady, phone, sendOtp]);
 
   // Countdown timer
   useEffect(() => {

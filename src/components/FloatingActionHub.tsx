@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, Star, Gift, X, HelpCircle } from 'lucide-react';
+import { MessageCircle, Gift, X, HelpCircle } from 'lucide-react';
 
 export default function FloatingActionHub() {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,7 +10,6 @@ export default function FloatingActionHub() {
 
   const actionItems = [
     { icon: <MessageCircle size={16} strokeWidth={1.5} />, label: "Support" },
-    { icon: <Star size={16} strokeWidth={1.5} />, label: "Reviews" },
     { icon: <Gift size={16} strokeWidth={1.5} />, label: "Rewards" },
   ];
 
