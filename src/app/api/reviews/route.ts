@@ -16,13 +16,13 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Firebase Admin not initialized' }, { status: 500 });
     }
     
-    const reviewsRef = adminDb.collection('reviews').where('productId', '==', productId).orderBy('createdAt', 'desc');
+    const reviewsRef = adminDb.collection('reviews').where('productId', '==', productId);
     const snapshot = await reviewsRef.get();
     
     const reviews = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
-    }));
+    })).sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     
     return NextResponse.json({ reviews });
   } catch (error) {
