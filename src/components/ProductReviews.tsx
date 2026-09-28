@@ -39,7 +39,7 @@ export default function ProductReviews({ productId, productHandle }: ProductRevi
     
     const fetchReviews = async () => {
       try {
-        const res = await fetch(`/api/reviews?productId=${numericId}`);
+        const res = await fetch(`/api/reviews?productId=${numericId}&t=${Date.now()}`, { cache: 'no-store' });
         const data = await res.json();
         if (data.reviews) {
           setReviews(data.reviews);
