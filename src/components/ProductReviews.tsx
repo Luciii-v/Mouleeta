@@ -211,7 +211,7 @@ export default function ProductReviews({ productId, productHandle }: ProductRevi
                 </div>
                 <h4 className="font-jost font-semibold uppercase tracking-widest text-sm text-stone-900 mb-1">{rev.authorName}</h4>
                 <p className="font-inter text-stone-500 text-sm mb-3">
-                  {new Date(rev.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  {new Date(rev.createdAt).toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}
                 </p>
                 <p className="font-inter text-stone-700 text-base leading-relaxed whitespace-pre-wrap">{rev.reviewText}</p>
               </div>
