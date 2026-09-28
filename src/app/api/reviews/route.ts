@@ -12,6 +12,10 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Missing productId' }, { status: 400 });
     }
     
+    if (!adminDb) {
+      return NextResponse.json({ error: 'Firebase Admin not initialized' }, { status: 500 });
+    }
+    
     const reviewsRef = adminDb.collection('reviews').where('productId', '==', productId).orderBy('createdAt', 'desc');
     const snapshot = await reviewsRef.get();
     
@@ -34,6 +38,10 @@ export async function POST(request: Request) {
     
     if (!productId || !rating || !reviewText || !authorName) {
       return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
+    }
+    
+    if (!adminDb) {
+      return NextResponse.json({ error: 'Firebase Admin not initialized' }, { status: 500 });
     }
     
     const review = {
