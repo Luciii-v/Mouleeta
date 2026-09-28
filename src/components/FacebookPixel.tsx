@@ -4,14 +4,25 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import { useEffect, useState } from 'react';
 
+declare global {
+  interface Window {
+    fbq: any;
+    _fbq: any;
+  }
+}
+
 export const FB_PIXEL_ID = '1625184029045275'; // User's Pixel ID
 
 export const pageview = () => {
-  window.fbq('track', 'PageView');
+  if (typeof window !== 'undefined' && window.fbq) {
+    window.fbq('track', 'PageView');
+  }
 };
 
 export const event = (name: string, options = {}) => {
-  window.fbq('track', name, options);
+  if (typeof window !== 'undefined' && window.fbq) {
+    window.fbq('track', name, options);
+  }
 };
 
 export default function FacebookPixel() {
