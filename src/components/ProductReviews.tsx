@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { useSession } from 'next-auth/react';
 
 interface ProductReviewsProps {
   productId?: string;
@@ -25,6 +26,10 @@ export default function ProductReviews({ productId, productHandle }: ProductRevi
   
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const { data: session } = useSession();
+  
+
 
   // Extract raw numeric ID if passed as gid
   const numericId = productId ? productId.split('/').pop() : '';
@@ -51,7 +56,8 @@ export default function ProductReviews({ productId, productHandle }: ProductRevi
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!reviewText || !authorName || !numericId) {
+    const finalAuthorName = authorName || session?.user?.name;
+    if (!reviewText || !finalAuthorName || !numericId) {
       toast.error('Please complete all fields.');
       return;
     }
@@ -64,7 +70,7 @@ export default function ProductReviews({ productId, productHandle }: ProductRevi
           productId: numericId,
           rating,
           reviewText,
-          authorName
+          authorName: finalAuthorName
         })
       });
       
@@ -151,7 +157,7 @@ export default function ProductReviews({ productId, productHandle }: ProductRevi
                     <label className="block font-inter text-xs uppercase tracking-wider text-stone-500 mb-2">Name</label>
                     <input 
                       type="text" 
-                      value={authorName}
+                      value={authorName || session?.user?.name || ""}
                       onChange={(e) => setAuthorName(e.target.value)}
                       className="w-full bg-white border border-stone-200 px-4 py-3 font-inter text-sm focus:outline-none focus:border-stone-900"
                       placeholder="Enter your name"
@@ -161,7 +167,9 @@ export default function ProductReviews({ productId, productHandle }: ProductRevi
                     <label className="block font-inter text-xs uppercase tracking-wider text-stone-500 mb-2">Email</label>
                     <input 
                       type="email" 
-                      className="w-full bg-white border border-stone-200 px-4 py-3 font-inter text-sm focus:outline-none focus:border-stone-900"
+                      value={session?.user?.email || ''}
+                      readOnly={!!session?.user?.email}
+                      className={`w-full bg-white border border-stone-200 px-4 py-3 font-inter text-sm focus:outline-none focus:border-stone-900 ${session?.user?.email ? 'bg-stone-50 text-stone-500 cursor-not-allowed' : ''}`}
                       placeholder="For verification only"
                     />
                   </div>
