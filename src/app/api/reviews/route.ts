@@ -19,10 +19,12 @@ export async function GET(request: Request) {
     const reviewsRef = adminDb.collection('reviews').where('productId', '==', productId);
     const snapshot = await reviewsRef.get();
     
-    const reviews = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })).sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const rawReviews = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const reviews = rawReviews.sort((a, b) => {
+      const dateA = (a as {createdAt?: string}).createdAt || '';
+      const dateB = (b as {createdAt?: string}).createdAt || '';
+      return new Date(dateB).getTime() - new Date(dateA).getTime();
+    });
     
     return NextResponse.json({ reviews });
   } catch (error) {
