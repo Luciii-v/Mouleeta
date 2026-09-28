@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Jost, Montserrat, Playfair_Display } from 'next/font/google';
 import './globals.css';
+import FacebookPixel from '@/components/FacebookPixel';
+
 
 import GrainOverlay from '@/components/GrainOverlay';
 
@@ -127,6 +129,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             },
           }}
         />
+        <FacebookPixel />
       </body>
     </html>
 
