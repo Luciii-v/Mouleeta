@@ -11,7 +11,7 @@ declare global {
   }
 }
 
-export const FB_PIXEL_ID = '1625184029045275'; // User's Pixel ID
+export const FB_PIXEL_ID = '2674451079639440'; // User's Pixel ID
 
 export const pageview = () => {
   if (typeof window !== 'undefined' && window.fbq) {
