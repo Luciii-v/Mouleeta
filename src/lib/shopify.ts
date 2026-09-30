@@ -832,7 +832,7 @@ export async function getCollectionProducts(handle: string = 'frontpage'): Promi
     const res = await shopifyFetch<{ data: { collection: { products: { edges: ShopifyCollectionProductEdge[] } } } }>({
       query,
       variables: { handle },
-      cache: 'no-store',
+      cache: 'force-cache',
       tags: [`collection-products-${handle}`]
     });
 
@@ -904,7 +904,7 @@ export async function getCollectionProducts(handle: string = 'frontpage'): Promi
           }>;
         };
       };
-    }>({ query: allProductsQuery, cache: 'no-store' });
+    }>({ query: allProductsQuery, cache: 'force-cache', tags: ['all-products-fallback'] });
 
     const allEdges = (allRes.body?.data?.products?.edges || []);
     

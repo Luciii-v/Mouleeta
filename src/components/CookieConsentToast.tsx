@@ -15,8 +15,9 @@ export default function CookieConsentToast() {
     }
   }, []);
 
-  const handleAccept = () => {
-    localStorage.setItem('mouleeta-cookie-consent', 'true');
+  const handleConsent = (type: 'all' | 'essential') => {
+    localStorage.setItem('mouleeta-cookie-consent', type);
+    // You could also emit an event here to trigger analytics scripts (e.g. Meta Pixel) if 'all' is chosen
     setIsVisible(false);
   };
 
@@ -38,13 +39,13 @@ export default function CookieConsentToast() {
           </div>
           <div className="flex gap-3 mt-2">
             <button
-              onClick={handleAccept}
+              onClick={() => handleConsent('all')}
               className="flex-1 bg-white text-black font-metropolis text-[9px] tracking-[0.2em] uppercase py-3 hover:bg-gray-200 transition-colors cursor-pointer"
             >
               Accept All
             </button>
             <button
-              onClick={handleAccept}
+              onClick={() => handleConsent('essential')}
               className="flex-1 border border-white/20 text-white font-metropolis text-[9px] tracking-[0.2em] uppercase py-3 hover:border-white transition-colors cursor-pointer"
             >
               Essential Only

@@ -16,10 +16,15 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Firebase Admin not initialized' }, { status: 500 });
     }
     
-    const reviewsRef = adminDb.collection('reviews').where('productId', '==', productId);
+    const reviewsRef = adminDb
+      .collection('reviews')
+      .where('productId', '==', productId);
     const snapshot = await reviewsRef.get();
     
-    const rawReviews = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // Filter out pending reviews in memory to avoid Firestore composite index requirement
+    const rawReviews = snapshot.docs
+      .map(doc => ({ id: doc.id, ...(doc.data() as { status?: string, createdAt?: string, rating?: number }) }))
+      .filter(doc => doc.status === 'approved');
     const reviews = rawReviews.sort((a, b) => {
       const dateA = (a as {createdAt?: string}).createdAt || '';
       const dateB = (b as {createdAt?: string}).createdAt || '';
@@ -52,7 +57,7 @@ export async function POST(request: Request) {
       reviewText,
       authorName,
       createdAt: new Date().toISOString(),
-      status: 'approved' // auto-publish for now
+      status: 'pending' // Require manual moderation
     };
     
     const docRef = await adminDb.collection('reviews').add(review);

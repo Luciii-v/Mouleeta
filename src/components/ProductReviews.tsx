@@ -7,7 +7,7 @@ import { useSession } from 'next-auth/react';
 
 interface ProductReviewsProps {
   productId?: string;
-  productHandle?: string;
+  
 }
 
 interface Review {
@@ -18,7 +18,7 @@ interface Review {
   createdAt: string;
 }
 
-export default function ProductReviews({ productId, productHandle }: ProductReviewsProps) {
+export default function ProductReviews({ productId }: ProductReviewsProps) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [rating, setRating] = useState(5);
   const [reviewText, setReviewText] = useState('');
@@ -44,8 +44,8 @@ export default function ProductReviews({ productId, productHandle }: ProductRevi
         if (data.reviews) {
           setReviews(data.reviews);
         }
-      } catch (err) {
-        console.error('Failed to fetch reviews', err);
+      } catch {
+        console.error('Failed to fetch reviews');
       } finally {
         setIsLoading(false);
       }
@@ -87,7 +87,7 @@ export default function ProductReviews({ productId, productHandle }: ProductRevi
       } else {
         toast.error('Failed to submit review.');
       }
-    } catch (err) {
+    } catch {
       toast.error('An error occurred.');
     }
   };
