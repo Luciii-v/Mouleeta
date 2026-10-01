@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { getProductByHandle } from '@/lib/shopify';
 import ProductDetail from '@/components/ProductDetail';
 
@@ -66,11 +67,7 @@ export default async function ProductPage({ params }: Props) {
   const product = await getProductByHandle(handle);
 
   if (!product) {
-    return (
-      <main className="min-h-screen flex items-center justify-center bg-[#F9F8F6]">
-        <h1 className="text-stone-500 tracking-widest uppercase text-sm">Product not found</h1>
-      </main>
-    );
+    notFound();
   }
 
   

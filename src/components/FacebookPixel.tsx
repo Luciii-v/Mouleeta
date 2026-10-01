@@ -29,11 +29,24 @@ function FacebookPixelInner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [loaded, setLoaded] = useState(false);
+  const [hasConsent, setHasConsent] = useState(false);
 
   useEffect(() => {
-    if (!loaded) return;
+    const checkConsent = () => {
+      setHasConsent(localStorage.getItem('mouleeta-cookie-consent') === 'all');
+    };
+    
+    checkConsent(); // Initial check on mount
+    window.addEventListener('cookie-consent-update', checkConsent);
+    return () => window.removeEventListener('cookie-consent-update', checkConsent);
+  }, []);
+
+  useEffect(() => {
+    if (!loaded || !hasConsent) return;
     pageview();
-  }, [pathname, searchParams, loaded]);
+  }, [pathname, searchParams, loaded, hasConsent]);
+
+  if (!hasConsent) return null;
 
   return (
     <Script

@@ -27,9 +27,15 @@ export default function CartDrawer({ upsellProducts = [] }: CartDrawerProps) {
   const router = useRouter();
   const { data: session } = useSession();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   const handleCheckout = async () => {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      setCheckoutError('You are currently offline. Please reconnect to the internet to complete your secure checkout.');
+      return;
+    }
     setIsProcessing(true);
+    setCheckoutError(null);
 
     try {
       const lines = cart.map(item => {
@@ -58,7 +64,7 @@ export default function CartDrawer({ upsellProducts = [] }: CartDrawerProps) {
     } catch (error) {
       console.error('Checkout error:', error);
       const msg = error instanceof Error ? error.message : 'Something went wrong initiating checkout. Please try again.';
-      alert(msg);
+      setCheckoutError(msg);
       setIsProcessing(false);
     }
   };
@@ -208,6 +214,11 @@ export default function CartDrawer({ upsellProducts = [] }: CartDrawerProps) {
             </div>
             <p className="text-[9px] tracking-widest text-stone-400 uppercase text-center mb-6">Taxes and shipping calculated at checkout</p>
             
+            {checkoutError && (
+              <div className="mb-4 text-center">
+                <p className="text-[10px] text-red-600 font-inter bg-red-50 p-2 border border-red-100">{checkoutError}</p>
+              </div>
+            )}
             <motion.button 
               onClick={handleCheckout}
               disabled={isProcessing}

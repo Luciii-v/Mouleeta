@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { getCollectionByHandle, getCollectionProducts } from '@/lib/shopify';
 import ProductCard from '@/components/ProductCard';
 import HeroImageFader from '@/components/HeroImageFader';
@@ -58,11 +59,7 @@ export default async function CollectionPage({ params }: Props) {
   const products = await getCollectionProducts(handle);
 
   if (!products || products.length === 0) {
-    return (
-      <div className="py-32 text-center min-h-[60vh] flex flex-col justify-center items-center bg-[#FAF9F6]">
-        <h1 className="text-2xl tracking-widest uppercase mb-4 font-light">Collection Not Found</h1>
-      </div>
-    );
+    notFound();
   }
 
   const pageTitle = titleFromHandle(handle);

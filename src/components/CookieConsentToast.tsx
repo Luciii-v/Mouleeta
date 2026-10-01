@@ -17,7 +17,7 @@ export default function CookieConsentToast() {
 
   const handleConsent = (type: 'all' | 'essential') => {
     localStorage.setItem('mouleeta-cookie-consent', type);
-    // You could also emit an event here to trigger analytics scripts (e.g. Meta Pixel) if 'all' is chosen
+    window.dispatchEvent(new Event('cookie-consent-update'));
     setIsVisible(false);
   };
 

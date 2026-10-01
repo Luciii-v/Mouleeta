@@ -12,6 +12,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import MemoryDock from '@/components/MemoryDock';
 import CookieConsentToast from '@/components/CookieConsentToast';
+import NetworkStatus from '@/components/NetworkStatus';
 import { Toaster } from 'sonner';
 import FloatingActionHub from '@/components/FloatingActionHub';
 import { getCollectionProducts } from '@/lib/shopify';
@@ -111,6 +112,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <CartDrawer upsellProducts={upsellProducts} />
           <MemoryDock />
           <CookieConsentToast />
+          <NetworkStatus />
           <FloatingActionHub />
           <main className="flex-1 flex flex-col">
             {children}
