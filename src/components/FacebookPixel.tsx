@@ -2,7 +2,7 @@
 
 import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense, useRef } from 'react';
 
 declare global {
   interface Window {
@@ -28,8 +28,8 @@ export const event = (name: string, options = {}) => {
 function FacebookPixelInner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [loaded, setLoaded] = useState(false);
   const [hasConsent, setHasConsent] = useState(false);
+  const isFirstLoad = useRef(true);
 
   useEffect(() => {
     const checkConsent = () => {
@@ -42,9 +42,17 @@ function FacebookPixelInner() {
   }, []);
 
   useEffect(() => {
-    if (!loaded || !hasConsent) return;
+    if (!hasConsent) return;
+    
+    // The initial script block automatically fires a PageView on load.
+    // We only want this effect to fire on subsequent SPA route changes.
+    if (isFirstLoad.current) {
+      isFirstLoad.current = false;
+      return;
+    }
+    
     pageview();
-  }, [pathname, searchParams, loaded, hasConsent]);
+  }, [pathname, searchParams, hasConsent]);
 
   if (!hasConsent) return null;
 
@@ -63,9 +71,9 @@ function FacebookPixelInner() {
           s.parentNode.insertBefore(t,s)}(window, document,'script',
           'https://connect.facebook.net/en_US/fbevents.js');
           fbq('init', '${FB_PIXEL_ID}');
+          fbq('track', 'PageView');
         `,
       }}
-      onLoad={() => setLoaded(true)}
     />
   );
 }
