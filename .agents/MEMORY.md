@@ -6,23 +6,38 @@
 - **Backend/DB:** Firebase (Firestore, Firebase Admin SDK) + Shopify Storefront API
 - **State/Auth:** Zustand, NextAuth
 
-## Core Architecture
+## Core Architecture & Guidelines
 - **E-commerce:** Headless Shopify via `src/lib/shopify.ts`.
 - **SSG Priority:** Strict SSG rendering for layouts and collections (`cache: 'force-cache'`). Dynamic rendering is restricted strictly to specific paths.
-- **Analytics & Tracking:** Meta Pixel (`FacebookPixel.tsx`) gated tightly behind custom cookie consent (`CookieConsentToast.tsx`).
+- **Build Strictness:** Zero-tolerance policy for ESLint errors (`no-explicit-any`, etc.) and Next.js dynamic render warnings. All pushes MUST pass `npm run lint` and `npm run build` cleanly before deploying to Vercel.
+- **Aesthetic/Brand:** "Quiet Luxury" minimal aesthetic. Colors feature deep onyx `#1A1A1A` and warm beige/creams `#FAF9F6`, `#FDFBF7`. Emojis are strongly avoided.
 
-## Recent Key Decisions & Implementations
-1. **Checkout CAPI & Pixels:** Unified Pixel ID (`2674451079639440`) and gated script loading until `mouleeta-cookie-consent === 'all'`.
-2. **Review System:** Custom Firestore-based review system. Auto-publishing was disabled; reviews default to `status: 'pending'` and are filtered in-memory to bypass composite index constraints (`api/reviews/route.ts`).
-3. **Robust Error Handling:** 
-   - `global-error.tsx` for layout-level catastrophic crashes.
-   - `notFound()` implementation for `collections/` and `products/` routes.
-   - Inline checkout error UI in `CartDrawer.tsx` (no browser alerts).
-   - Global offline network detection (`NetworkStatus.tsx`).
-4. **Build Strictness:** Zero-tolerance policy for ESLint errors and Next.js dynamic render warnings. All pushes must pass `npm run lint` and `npm run build` cleanly.
-5. **Aesthetic/Brand:** "Quiet Luxury" minimal aesthetic. Colors feature deep onyx `#1A1A1A` and warm beige/creams `#FAF9F6`, `#FDFBF7`. Emojis are strongly avoided.
+## Built & Achieved Today (Oct 2, 2026 Session)
+1. **Instagram & Social Polish:**
+   - Optimized Instagram bio for "Quiet Luxury" (MOULEETA, removed emojis).
+   - Generated AI-driven texture-focused Highlight covers (fabric, packaging, envelope, wooden hanger) stored locally for the user.
+2. **Review System Moderation:** 
+   - Disabled auto-publishing. Reviews now default to `status: 'pending'`.
+   - Filtered API GET requests for `approved` reviews *in-memory* to successfully bypass Firestore composite index constraints/crashes (`api/reviews/route.ts`).
+3. **Layout Static Generation (SSG) Fix:** 
+   - Changed Shopify upsell fetches in `lib/shopify.ts` from `no-store` to `force-cache`. This eliminated noisy build-time warnings and allowed the entire root layout to statically generate, significantly improving performance.
+4. **Cookie Consent & Meta Pixel Gating:** 
+   - Split Cookie Consent into distinct `all` and `essential` states.
+   - Gated the Meta Pixel completely behind `mouleeta-cookie-consent === 'all'`. 
+   - Embedded `fbq('track', 'PageView')` directly inside the script injection and used `useRef` to guarantee the PageView fires exactly once immediately upon consent without duplicating on SPA route changes.
+5. **Comprehensive Error Handling Suite:** 
+   - Created `global-error.tsx` for layout-level catastrophic crashes.
+   - Replaced generic UI with true `notFound()` 404s for missing products/collections.
+   - Replaced browser `alert()` with a clean, inline red error UI for checkout failures in `CartDrawer.tsx`.
+   - Implemented a global `NetworkStatus.tsx` (`z-[9999]`) that drops down a "You are offline" banner and blocks checkout gracefully, preserving the cart.
 
-## Pending / Future Work
-- Hotjar Implementation (User put on hold).
-- Meta CAPI & Ads Tracking Review (Pending checkout backend logic).
-- Future SEO or additional CMS/admin integrations.
+## Active State
+- The frontend is fully optimized, rigorously tested, and successfully deployed to Vercel. 
+- E-commerce tracking is strictly and legally gated by cookie consent.
+- The build pipeline is perfectly green (0 lint errors, 0 build warnings).
+- The "Quiet Luxury" aesthetic is fully unified across the web app and social channels.
+
+## Exact Next Steps (Start Here)
+1. **Implement Hotjar:** The user previously put this on the backlog. Introduce session recording/heatmaps, ensuring it is *also* gated behind the cookie consent mechanism we built today.
+2. **Meta Conversions API (CAPI):** The client-side Pixel is complete. The next priority is verifying or implementing server-side tracking (CAPI) for deeper conversion matching, especially around Add-To-Cart and Checkout.
+3. **Admin Dashboard / Firestore Management:** Since reviews are now `pending` by default, an admin interface or script is needed to easily approve reviews in Firestore.
