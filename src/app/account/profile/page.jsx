@@ -54,7 +54,6 @@ export default function ProfilePage() {
           acceptsMarketing: profile.marketingOptIn || false,
         }));
         setVerifiedEmail(email);
-        setVerifiedPhone(profile.phoneNumber || "");
       }, 0);
     } else if (session?.user && !loading) {
       // Fallback to session if no profile exists yet (should be seeded, but just in case)
@@ -112,9 +111,6 @@ export default function ProfilePage() {
       setOtpModal({ isOpen: true, target: formData.email, type: "email" });
       return;
     }
-    // Removed Phone OTP requirement to bypass Firebase billing constraints.
-    // The phone number will just be saved as a standard contact number.
-    
     setIsEditing(false);
     
     // Save to Firestore Database
@@ -124,7 +120,6 @@ export default function ProfilePage() {
         gender: formData.gender,
         marketingOptIn: formData.acceptsMarketing,
         phoneNumber: currentFullPhone || null,
-        phoneVerified: false,
       });
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 5000);
@@ -137,8 +132,6 @@ export default function ProfilePage() {
   const handleOtpVerified = (target, type) => {
     if (type === "email") {
       setVerifiedEmail(target);
-    } else {
-      setVerifiedPhone(target);
     }
   };
 

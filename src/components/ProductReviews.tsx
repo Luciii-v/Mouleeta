@@ -78,8 +78,6 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
       
       if (data.success) {
         toast.success('Review submitted successfully!');
-        // Instantly add to UI
-        setReviews([data.review, ...reviews]);
         setIsFormOpen(false);
         setReviewText('');
         setAuthorName('');

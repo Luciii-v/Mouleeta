@@ -1,11 +1,17 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
+import { isRateLimited, requestAddress } from '@/lib/rate-limit';
 
 export async function POST(req: Request) {
   try {
-    const { email } = await req.json();
+    if (await isRateLimited(`newsletter:ip:${requestAddress(req)}`, 5, 60 * 60 * 1000)) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    }
 
-    if (!email) {
+    const body = await req.json();
+    const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : '';
+
+    if (!email || email.length > 254 || !/^[^\s@]+@[A-Za-z0-9.-]+$/.test(email)) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
 
@@ -52,7 +58,7 @@ export async function POST(req: Request) {
 
       if (!updateRes.ok) {
         const errorData = await updateRes.json().catch(() => ({}));
-        console.error('Failed to update customer:', errorData);
+        console.error('Failed to update customer with status:', updateRes.status);
         throw new Error(errorData.errors ? JSON.stringify(errorData.errors) : 'Failed to update existing customer');
       }
     } else {
@@ -76,7 +82,7 @@ export async function POST(req: Request) {
 
       if (!createRes.ok) {
         const errorData = await createRes.json().catch(() => ({}));
-        console.error('Failed to create customer:', errorData);
+        console.error('Failed to create customer with status:', createRes.status);
         // If email is taken but wasn't found in search (eventual consistency), handle it gracefully
         if (errorData.errors?.email?.includes('has already been taken')) {
           return NextResponse.json({ success: true, message: 'Already subscribed' });
@@ -119,11 +125,14 @@ export async function POST(req: Request) {
       }
     }
 
-    return NextResponse.json({ success: true, message: 'Subscribed successfully' });
-  } catch (error: unknown) {
-    console.error('Newsletter subscription error:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
+      { success: true, message: 'Subscribed successfully' },
+      { headers: { 'Cache-Control': 'no-store' } }
+    );
+  } catch (error: unknown) {
+    console.error('Newsletter subscription error:', error instanceof Error ? error.name : 'unknown');
+    return NextResponse.json(
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

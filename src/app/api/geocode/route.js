@@ -1,13 +1,18 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
+import { isRateLimited, requestAddress } from "@/lib/rate-limit";
 
 export async function GET(request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const lat = searchParams.get("lat");
-    const lon = searchParams.get("lon");
+    if (await isRateLimited(`geocode:ip:${requestAddress(request)}`, 30, 60 * 1000)) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    }
 
-    if (!lat || !lon) {
+    const { searchParams } = new URL(request.url);
+    const lat = Number(searchParams.get("lat"));
+    const lon = Number(searchParams.get("lon"));
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
       return NextResponse.json({ error: "Missing lat/lon parameters" }, { status: 400 });
     }
 
@@ -126,8 +131,8 @@ export async function GET(request) {
       zip: detectedZip,
       road: detectedRoad,
     });
-  } catch {
-    console.error("Geocoding proxy error:", error);
+  } catch (error) {
+    console.error("Geocoding proxy error:", error instanceof Error ? error.name : "unknown");
     return NextResponse.json({ error: "Failed to resolve location" }, { status: 500 });
   }
 }

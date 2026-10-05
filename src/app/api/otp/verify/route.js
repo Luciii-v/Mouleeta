@@ -1,80 +1,53 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
-
-// Shared in-memory OTP store (must match the send route's global store)
-global.otpStore = global.otpStore || new Map();
-
-const MAX_ATTEMPTS = 5; // Invalidate OTP after this many failed attempts
+import {
+  consumeOtp,
+  normalizeEmail,
+} from "@/lib/otp";
+import { isRateLimited, requestAddress } from "@/lib/rate-limit";
 
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { target, otp } = body;
+    const target = normalizeEmail(body?.target);
+    const otp = typeof body?.otp === "string" ? body.otp.trim() : "";
 
-    if (!target || !otp) {
+    if (!target || !/^\d{6}$/.test(otp)) {
       return NextResponse.json(
         { success: false, error: "Missing target or verification code." },
         { status: 400 }
       );
     }
 
-    const key = target.trim().toLowerCase();
-    const record = global.otpStore.get(key);
-
-    // If no record exists (expired, already used, or never sent)
-    if (!record) {
+    if (await isRateLimited(`otp-verify:ip:${requestAddress(req)}`, 30, 10 * 60 * 1000)) {
       return NextResponse.json(
-        { success: false, error: "Verification code not found or has already been used. Please request a new code." },
-        { status: 404 }
+        { success: false, error: "Too many verification attempts." },
+        { status: 429, headers: { "Cache-Control": "no-store" } }
       );
     }
 
-    // Check expiry FIRST — even a correct code should not work if expired
-    if (record.expiresAt < Date.now()) {
-      global.otpStore.delete(key);
+    // Profile verification and sign-in challenges are purpose-separated.
+    // This endpoint cannot consume an authentication OTP or issue a session.
+    const result = await consumeOtp(target, otp, "profile-email");
+
+    if (!result.ok) {
+      const status = result.reason === "expired" ? 410 : result.reason === "attempts" ? 429 : 400;
       return NextResponse.json(
-        { success: false, error: "Verification code has expired. Please request a new code." },
-        { status: 410 }
+        { success: false, error: "Invalid or expired verification code." },
+        { status, headers: { "Cache-Control": "no-store" } }
       );
     }
-
-    // Check brute-force attempt limit
-    const attempts = record.attempts ?? 0;
-    if (attempts >= MAX_ATTEMPTS) {
-      global.otpStore.delete(key);
-      return NextResponse.json(
-        { success: false, error: "Too many incorrect attempts. This code has been invalidated. Please request a new one." },
-        { status: 429 }
-      );
-    }
-
-    // Compare the provided OTP against the stored one (trimmed, string comparison)
-    if (record.otp !== otp.trim()) {
-      // Increment attempt counter
-      global.otpStore.set(key, { ...record, attempts: attempts + 1 });
-      const remaining = MAX_ATTEMPTS - (attempts + 1);
-      return NextResponse.json(
-        {
-          success: false,
-          error: `Invalid verification code. ${remaining > 0 ? `${remaining} attempt${remaining !== 1 ? "s" : ""} remaining.` : "This code has been invalidated."}`,
-        },
-        { status: 400 }
-      );
-    }
-
-    // ✅ Correct OTP — consume it immediately (one-time use)
-    global.otpStore.delete(key);
 
     return NextResponse.json({
       success: true,
       verified: true,
       message: "Identity verified successfully.",
-    });
+    }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
-    console.error("Error verifying OTP:", error);
+    console.error("OTP verification unavailable");
     return NextResponse.json(
       { success: false, error: "Internal verification error. Please try again." },
-      { status: 500 }
+      { status: error instanceof SyntaxError ? 400 : 503, headers: { "Cache-Control": "no-store" } }
     );
   }
 }

@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from 'framer-motion';
 import MagneticButton from '@/components/MagneticButton';
+import type { SanitizedProductHtml } from '@/lib/sanitize-html';
 
 interface VariantNode {
   id: string;
@@ -27,7 +28,7 @@ interface ProductFormProps {
   product: {
     id: string;
     title: string;
-    descriptionHtml: string;
+    descriptionHtml: SanitizedProductHtml;
     images?: {
       edges: {
         node: {

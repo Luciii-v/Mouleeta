@@ -1,4 +1,6 @@
+import 'server-only';
 import { Product, ProductVariant } from '@/types/product';
+import { sanitizeProductHtml, type SanitizedProductHtml } from './sanitize-html';
 
 // Retrieve Shopify configuration from environment variables
 const domain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN || '';
@@ -107,7 +109,7 @@ export interface ShopifyProductDetailResult {
   id: string;
   title: string;
   handle: string;
-  descriptionHtml: string;
+  descriptionHtml: SanitizedProductHtml;
   priceRange: { minVariantPrice: { amount: string; currencyCode: string } };
   images: { edges: Array<{ node: { url: string; altText?: string } }> };
   variants: {
@@ -538,8 +540,8 @@ export async function getProductsByCategory(
 export async function createCart(email?: string): Promise<{ id: string; checkoutUrl: string } | null> {
   const query = email
     ? `
-    mutation CreateCart {
-      cartCreate(input: { buyerIdentity: { email: "${email}" } }) {
+    mutation CreateCart($email: String!) {
+      cartCreate(input: { buyerIdentity: { email: $email } }) {
         cart {
           id
           checkoutUrl
@@ -568,7 +570,11 @@ export async function createCart(email?: string): Promise<{ id: string; checkout
           };
         };
       };
-    }>({ query, cache: 'no-store' });
+    }>({
+      query,
+      variables: email ? { email } : {},
+      cache: 'no-store'
+    });
 
     return res.body.data.cartCreate.cart;
   } catch (error) {
@@ -781,7 +787,11 @@ export async function getProductByHandle(handle: string): Promise<ShopifyProduct
       cache: 'force-cache',
       tags: [`product-${handle}`]
     });
-    return res.body?.data?.product || null;
+    const product = res.body?.data?.product;
+    return product ? {
+      ...product,
+      descriptionHtml: sanitizeProductHtml(product.descriptionHtml),
+    } : null;
   } catch (error) {
     console.error(`Failed to get product by handle ${handle}:`, error);
     return null;

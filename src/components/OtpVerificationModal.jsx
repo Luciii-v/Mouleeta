@@ -44,7 +44,7 @@ export default function OtpVerificationModal({
       const res = await fetch("/api/otp/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ target, type }),
+        body: JSON.stringify({ target, type, purpose: skipSignIn ? "profile-email" : "sign-in" }),
       });
       const data = await res.json();
       if (data.success) {
@@ -125,32 +125,37 @@ export default function OtpVerificationModal({
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/otp/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ target, otp: fullOtp }),
-      });
-      const data = await res.json();
-      if (data.success || data.verified) {
-        setSuccessMsg("✨ Email verified successfully!");
-
-        if (!skipSignIn) {
-          // Create a real NextAuth session
-          await signIn("otp-verified", {
-            target,
-            type: "email",
-            verified: "true",
-            redirect: false,
-          });
+      if (skipSignIn) {
+        const res = await fetch("/api/otp/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ target, otp: fullOtp }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          setError(data.error || "Invalid verification code.");
+          return;
         }
-
-        setTimeout(() => {
-          onVerified(target, "email");
-          onClose();
-        }, 1200);
       } else {
-        setError(data.error || "Invalid verification code.");
+        // NextAuth validates and consumes the OTP on the server. The browser
+        // never gets to assert that an arbitrary target was verified.
+        const result = await signIn("otp-verified", {
+          target,
+          type: "email",
+          otp: fullOtp,
+          redirect: false,
+        });
+        if (!result?.ok || result.error) {
+          setError("Invalid or expired verification code.");
+          return;
+        }
       }
+
+      setSuccessMsg("✨ Email verified successfully!");
+      setTimeout(() => {
+        onVerified(target, "email");
+        onClose();
+      }, 1200);
     } catch {
       setError("Verification failed. Please try again.");
     } finally {

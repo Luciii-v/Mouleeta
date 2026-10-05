@@ -37,7 +37,7 @@ export default function OrdersPage() {
   useEffect(() => {
     if (selectedOrder?.action === "TRACKING") {
       setTimeout(() => setIsLoadingTracking(true), 0);
-      fetch(`/api/track?awb=${selectedOrder.trackingNumber}`)
+        fetch(`/api/track?awb=${encodeURIComponent(selectedOrder.trackingNumber)}&orderId=${encodeURIComponent(selectedOrder.id)}`)
         .then((res) => res.json())
         .then((data) => {
           setTrackingData(data);

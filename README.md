@@ -1,5 +1,11 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Security and deployment
+
+See [SECURITY.md](./SECURITY.md) for shared Firestore OTP/rate-limit setup, TTL and
+client-access rules, dependency override rationale, CSP limitations, and required
+deployment checks. This project targets Node 22.x (22.12 or newer).
+
 ## Getting Started
 
 First, run the development server:

@@ -1,7 +1,10 @@
+import "server-only";
 import { initializeApp, getApps, getApp, cert } from "firebase-admin/app";
 import { getFirestore, Firestore } from "firebase-admin/firestore";
+import { getAuth, Auth } from "firebase-admin/auth";
 
 let adminDb: Firestore | null = null;
+let adminAuth: Auth | null = null;
 
 if (!getApps().length) {
   try {
@@ -25,8 +28,9 @@ if (!getApps().length) {
 // Only call getFirestore() if an app was successfully initialized
 try {
   adminDb = getFirestore(getApp());
+  adminAuth = getAuth(getApp());
 } catch {
   console.warn("Firebase Admin: Firestore unavailable — app not initialized.");
 }
 
-export { adminDb };
+export { adminAuth, adminDb };

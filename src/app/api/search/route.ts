@@ -1,10 +1,15 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { shopifyFetch } from '@/lib/shopify';
+import { isRateLimited, requestAddress } from '@/lib/rate-limit';
 
 export async function GET(request: Request) {
+  if (await isRateLimited(`search:ip:${requestAddress(request)}`, 60, 60 * 1000)) {
+    return NextResponse.json({ success: false, error: 'Too many requests' }, { status: 429 });
+  }
+
   const { searchParams } = new URL(request.url);
-  const q = searchParams.get('q');
+  const q = searchParams.get('q')?.trim().slice(0, 100);
 
   if (!q) {
     return NextResponse.json({ success: true, results: [] });
@@ -82,7 +87,10 @@ export async function GET(request: Request) {
       inStock: true
     }));
 
-    return NextResponse.json({ success: true, results: formattedResults });
+    return NextResponse.json(
+      { success: true, results: formattedResults },
+      { headers: { 'Cache-Control': 'private, no-store' } }
+    );
   } catch (error) {
     console.error('Search API error:', error);
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });

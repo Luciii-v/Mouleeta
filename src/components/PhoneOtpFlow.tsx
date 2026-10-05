@@ -184,17 +184,20 @@ export default function PhoneOtpFlow({ phone, onVerified, onClose, skipSignIn }:
     setLoading(true);
     setError("");
     try {
-      // Confirm OTP with Firebase
-      await confirmationResult.confirm(fullOtp);
+      // Confirm OTP with Firebase and obtain a server-verifiable ID token.
+      const credential = await confirmationResult.confirm(fullOtp);
 
       if (!skipSignIn) {
-        // Create a NextAuth session so the rest of the app works seamlessly
-        await signIn("otp-verified", {
+        const firebaseIdToken = await credential.user.getIdToken();
+        const result = await signIn("otp-verified", {
           target: phone,
           type: "phone",
-          verified: "true",
+          firebaseIdToken,
           redirect: false,
         });
+        if (!result?.ok || result.error) {
+          throw new Error("Unable to create a secure session.");
+        }
       }
 
       setSuccessMsg("✨ Phone verified successfully!");

@@ -15,6 +15,18 @@ interface SearchModalProps {
   onClose: () => void;
 }
 
+interface SearchProduct {
+  id: string;
+  title: string;
+  slug: string;
+  price: number;
+  description: string;
+  images: string[];
+  subCategoryId: string;
+  variantId: string | null;
+  size: string;
+}
+
 
 
 export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
@@ -26,8 +38,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { addToCart } = useCartStore();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<SearchProduct[]>([]);
 
   // Handle Escape key and auto-focus
   useEffect(() => {
@@ -42,39 +53,23 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
         inputRef.current?.focus();
       }, 50);
 
-      // Fetch active Shopify products and collections for search database on open
-      import('@/lib/shopify')
-        .then(({ getProducts, getCollections }) => {
-          getProducts().then((fetched) => {
-            if (fetched && fetched.length > 0) {
-              setProducts(
-                fetched.map((p) => ({
-                  id: p.id,
-                  title: p.title,
-                  slug: p.handle,
-                  price: Math.round(parseFloat(p.priceRange?.minVariantPrice?.amount || '0')),
-                  description: p.description || '',
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  images: p.images?.edges?.map((e: any) => e.node.url) || ['/placeholder.png'],
-                  subCategoryId: p.handle.includes('dress') ? 'dresses' : p.handle.includes('top') || p.handle.includes('shirt') ? 'shirts' : p.handle.includes('bag') ? 'accessories' : 'dresses'
-                }))
-              );
-            }
-          }).catch(console.error);
-          
-          getCollections().then((cols) => {
-             const validCols = cols.filter(c => c.handle !== 'frontpage' && c.handle !== 'all').slice(0, 6);
-             if (validCols.length > 0) {
-               setTrendingTags(validCols.map(c => c.title));
-             } else {
-               setTrendingTags(['New Arrivals', 'Dresses', 'Shirts']);
-             }
-          }).catch(console.error);
+      const controller = new AbortController();
+      fetch('/api/search/catalog', { signal: controller.signal })
+        .then((response) => {
+          if (!response.ok) throw new Error('Catalog unavailable');
+          return response.json();
         })
-        .catch(console.error);
+        .then((catalog) => {
+          setProducts(catalog.products);
+          setTrendingTags(catalog.trendingTags);
+        })
+        .catch(() => {
+          if (!controller.signal.aborted) setTrendingTags(['New Arrivals', 'Dresses', 'Shirts']);
+        });
 
       return () => {
         clearTimeout(timer);
+        controller.abort();
         window.removeEventListener('keydown', handleKeyDown);
       };
     }
@@ -254,13 +249,18 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
                                     router.push("/account/login");
                                     return;
                                   }
+                                  if (!item.variantId) {
+                                    onClose();
+                                    router.push(`/products/${item.slug}`);
+                                    return;
+                                  }
                                   addToCart({
                                     id: item.id,
-                                    variantId: item.id,
+                                    variantId: item.variantId,
                                     title: item.title,
                                     price: item.price,
                                     image: item.images[0] || '/placeholder.png',
-                                    size: 'OS',
+                                    size: item.size,
                                     subtext: item.subCategoryId
                                   });
                                 }}

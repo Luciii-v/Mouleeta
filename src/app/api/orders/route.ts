@@ -18,6 +18,7 @@ interface ShopifyLineItemNode {
 interface ShopifyOrderNode {
   id: string;
   name: string;
+  customer: { email: string | null } | null;
   createdAt: string;
   displayFulfillmentStatus: string;
   displayFinancialStatus: string;
@@ -48,9 +49,10 @@ export async function GET() {
         orders(first: 20, query: $query, sortKey: CREATED_AT, reverse: true) {
           edges {
             node {
-              id
-              name
-              createdAt
+               id
+               name
+               customer { email }
+               createdAt
               displayFulfillmentStatus
               displayFinancialStatus
               totalPriceSet {
@@ -91,8 +93,9 @@ export async function GET() {
       }
     `;
 
+    const searchEmail = email.trim().replace(/["\\]/g, "\\$&");
     const variables = {
-      query: `email:${email}`
+      query: `email:"${searchEmail}"`
     };
 
     const res = await fetch(`https://${domain}/admin/api/${apiVersion}/graphql.json`, {
@@ -116,10 +119,15 @@ export async function GET() {
       return NextResponse.json({ error: "GraphQL Error" }, { status: 500 });
     }
 
-    const ordersData = json.data?.orders?.edges || [];
+    const normalizedEmail = email.trim().toLowerCase();
+    const ordersData = (json.data?.orders?.edges || [])
+      .map(({ node }: { node: ShopifyOrderNode }) => node)
+      .filter((node: ShopifyOrderNode) =>
+        node.customer?.email?.trim().toLowerCase() === normalizedEmail
+      );
 
     // Map to the format expected by the frontend
-    const formattedOrders = ordersData.map(({ node }: { node: ShopifyOrderNode }) => {
+    const formattedOrders = ordersData.map((node: ShopifyOrderNode) => {
       // Find the first fulfillment that has tracking info, if any
       const fulfillments = node.fulfillments || [];
       let trackingNumber = null;
@@ -177,7 +185,9 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json(formattedOrders);
+    return NextResponse.json(formattedOrders, {
+      headers: { "Cache-Control": "private, no-store" },
+    });
   } catch (error: unknown) {
     console.error("Error in /api/orders:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

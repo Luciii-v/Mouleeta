@@ -15,6 +15,7 @@ import FitConciergeModal from '@/components/FitConciergeModal';
 import VIPConcierge from '@/components/VIPConcierge';
 import RecentlyViewed from '@/components/RecentlyViewed';
 import ProductReviews from '@/components/ProductReviews';
+import type { SanitizedProductHtml } from '@/lib/sanitize-html';
 
 
 
@@ -50,7 +51,7 @@ interface ProductDetailProps {
     id: string;
     handle: string;
     title: string;
-    descriptionHtml: string;
+    descriptionHtml: SanitizedProductHtml;
     description?: string;
     productType?: string;
     vendor?: string;
@@ -432,7 +433,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
             <div 
               suppressHydrationWarning
               className="product-description font-jost text-[13px] md:text-[14px] text-stone-600 font-light leading-[1.8] tracking-[0.03em] mb-8"
-              dangerouslySetInnerHTML={{ __html: parsedSections.top }}
+               dangerouslySetInnerHTML={{ __html: parsedSections.top }}
             />
           ) : (
             <p className="font-inter text-xs sm:text-sm text-[#1A1A1A]/70 leading-relaxed tracking-wider mb-8">
@@ -642,7 +643,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                       <div 
                         suppressHydrationWarning
                         className="product-description font-jost text-[13px] text-[#1A1A1A]/70 leading-[1.8] pb-6"
-                        dangerouslySetInnerHTML={{ __html: parsedSections.details || 'Crafted from 100% organic fibers. This piece features our signature relaxed silhouette, French seams, and Corozo nut buttons. Pre-washed for incredible softness and zero shrinkage.' }}
+                         dangerouslySetInnerHTML={{ __html: parsedSections.details || 'Crafted from 100% organic fibers. This piece features our signature relaxed silhouette, French seams, and Corozo nut buttons. Pre-washed for incredible softness and zero shrinkage.' }}
                       />
                     </motion.div>
                   )}
@@ -674,7 +675,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                       <div 
                         suppressHydrationWarning
                         className="product-description font-jost text-[13px] text-[#1A1A1A]/70 leading-[1.8] pb-6"
-                        dangerouslySetInnerHTML={{ __html: parsedSections.fit }}
+                         dangerouslySetInnerHTML={{ __html: parsedSections.fit }}
                       />
                     </motion.div>
                   )}
@@ -706,7 +707,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                       <div 
                         suppressHydrationWarning
                         className="product-description font-jost text-[13px] text-[#1A1A1A]/70 leading-[1.8] pb-6"
-                        dangerouslySetInnerHTML={{ __html: parsedSections.care }}
+                         dangerouslySetInnerHTML={{ __html: parsedSections.care }}
                       />
                     </motion.div>
                   )}

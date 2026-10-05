@@ -18,10 +18,10 @@ export default function AccountLayout({ children }) {
 
   // Redirect unauthenticated users to login
   React.useEffect(() => {
-    if (status === "unauthenticated" && !isAuthRoute) {
+    if ((status === "unauthenticated" || (status === "authenticated" && !session?.user)) && !isAuthRoute) {
       router.replace("/account/login");
     }
-  }, [status, isAuthRoute, router]);
+  }, [status, session, isAuthRoute, router]);
 
   if (isAuthRoute) {
     return <>{children}</>;
@@ -42,7 +42,7 @@ export default function AccountLayout({ children }) {
     );
   }
 
-  if (status === "unauthenticated") {
+  if (status === "unauthenticated" || !session?.user) {
     return (
       <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center">
         <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400 font-metropolis">
@@ -56,7 +56,7 @@ export default function AccountLayout({ children }) {
     try {
       signOut({ callbackUrl: "/" });
     } catch {
-      window.location.href = "/";
+      router.replace("/");
     }
   };
 
