@@ -42,13 +42,15 @@
 2. **Meta Conversions API (CAPI):** The client-side Pixel is complete. The next priority is verifying or implementing server-side tracking (CAPI) for deeper conversion matching, especially around Add-To-Cart and Checkout.
 3. **Admin Dashboard / Firestore Management:** Since reviews are now `pending` by default, an admin interface or script is needed to easily approve reviews in Firestore.
 
-## Local Security Follow-up (Oct 4, 2026)
-- Local changes are uncommitted and have not been deployed. Read `SECURITY.md` before deploying or changing authentication/dependencies.
-- OTPs and API rate limits now use Firebase Admin Firestore transactions, HMAC-hashed identifiers/codes, explicit expiry, and deployment/purpose isolation. The shared store has no process-local fallback.
-- Configure TTL on `expiresAt` for `securityOtpChallenges` and `securityRateLimits`, deny all browser access to those collections, and validate IAM/transactions in staging. `SECURITY_STATE_SECRET` falls back to `NEXTAUTH_SECRET`; both require at least 32 characters. Use an explicit isolated namespace in local/staging production-mode runs.
-- Pre-remediation sessions are rejected using `securityVersion: 2`; users must reauthenticate after deployment.
-- Product HTML is sanitized on the server with maintained `sanitize-html`; the search drawer uses `/api/search/catalog` so server modules stay out of client bundles.
-- CSP now denies inline event attributes, but script-src still permits unsafe-inline for SSG hydration. A strict nonce/hash policy remains an explicit rendering/browser-testing decision, not a completed protection.
-- Target Node 22.x (>=22.12) for `sanitize-html@2.18.0`. Retain/document the gRPC override; the ineffective braces override was removed.
-- Verified: 17 synthetic security regression tests, clean lint/build/diff checks, and zero production audit findings. The full audit still reports five high-severity development-package entries from the braces lint-tooling advisory.
-- External next steps: shared-state TTL/rules/runtime configuration, staging integration tests, Shopify credential rotation, canonical OAuth URL alignment, then deployment.
+## Local Security Follow-up & Deployment (Oct 15, 2026)
+- Security overhaul successfully committed and pushed to `main`.
+- CI pipeline in `.github/workflows/deploy.yml` upgraded to Node 22 (aligning with `package.json` engines and dependencies like `sanitize-html@2.18.0` and `google-logging-utils@2.0.1`).
+- Resolved CI TypeScript checks by explicitly typing `QueryDocumentSnapshot` & `ReviewDoc` in `src/app/api/reviews/route.ts`, `Transaction` in `src/lib/security-store.ts`, and `expiresAt` casting in `tests/security/firestore.test.ts`.
+- GitHub Actions CI/CD completed with full success and automatically deployed to Vercel Production.
+- Pre-remediation sessions are rejected using `securityVersion: 2`; users must reauthenticate.
+- OTPs and API rate limits use Firebase Admin Firestore transactions with HMAC-hashed identifiers.
+- External next steps:
+  1. Rotate Shopify credentials (client secret & admin API tokens) in Shopify admin and update Vercel.
+  2. Verify canonical domain and OAuth redirect URLs (`https://www.mouleeta.shop`).
+  3. Revisit Firestore TTL in Google Cloud Console now that production collections are active.
+  4. Perform smoke/staging tests for auth, OTP, checkout, and tracking flows.
