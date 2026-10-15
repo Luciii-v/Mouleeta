@@ -39,7 +39,7 @@ test("Firestore adapter writes timestamp TTL fields and transactionally deletes 
   const challenge = await state.createOtp(target, "sign-in");
   const record = [...fake.records.values()][0];
   assert.ok(record.expiresAt instanceof Timestamp);
-  assert.equal(record.expiresAt.toMillis(), record.expiresAtMs);
+  assert.equal((record.expiresAt as Timestamp).toMillis(), record.expiresAtMs);
   assert.equal(await state.activateOtp(target, "sign-in", challenge.challengeId), true);
   assert.equal((await state.consumeOtp(target, challenge.otp, "sign-in")).ok, true);
   assert.equal(fake.records.size, 0);

@@ -1,5 +1,5 @@
 import "server-only";
-import { Timestamp, type Firestore } from "firebase-admin/firestore";
+import { Timestamp, type Firestore, type Transaction } from "firebase-admin/firestore";
 import { adminDb } from "./firebase-admin";
 import { SecurityState, type AtomicSecurityStore, type ExpiringRecord, type Mutation } from "./security-state";
 
@@ -12,7 +12,7 @@ export class FirestoreSecurityStore implements AtomicSecurityStore {
     mutate: (current: T | null, now: number) => Mutation<T, R>
   ): Promise<R> {
     const ref = this.db.collection(collection).doc(id);
-    return this.db.runTransaction(async (transaction) => {
+    return this.db.runTransaction(async (transaction: Transaction) => {
       const snapshot = await transaction.get(ref);
       const mutation = mutate(snapshot.exists ? snapshot.data() as T : null, Date.now());
       if (mutation.value === null) {

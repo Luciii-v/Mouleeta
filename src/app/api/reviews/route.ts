@@ -1,8 +1,18 @@
 import { NextResponse } from "next/server";
+import type { QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { isRateLimited, requestAddress } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
+
+interface ReviewDoc {
+  id: string;
+  authorName: string;
+  rating: number;
+  reviewText: string;
+  createdAt: string;
+  status: unknown;
+}
 
 function response(body: unknown, status = 200) {
   return NextResponse.json(body, {
@@ -34,8 +44,8 @@ export async function GET(request: Request) {
       .limit(100)
       .get();
 
-    const reviews = snapshot.docs
-      .map((doc) => {
+    const reviews: ReviewDoc[] = snapshot.docs
+      .map((doc: QueryDocumentSnapshot) => {
         const data = doc.data();
         const createdAt =
           typeof data.createdAt === "string"
@@ -54,25 +64,26 @@ export async function GET(request: Request) {
         };
       })
       .filter(
-        (review) =>
+        (review: ReviewDoc) =>
           review.status === "approved" &&
           review.rating >= 1 &&
           review.rating <= 5 &&
           review.reviewText.length > 0
       )
       .sort(
-        (a, b) =>
+        (a: ReviewDoc, b: ReviewDoc) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      )
-      .map((review) => ({
-        id: review.id,
-        authorName: review.authorName,
-        rating: review.rating,
-        reviewText: review.reviewText,
-        createdAt: review.createdAt,
-      }));
+      );
 
-    return response({ reviews });
+    const formattedReviews = reviews.map((review: ReviewDoc) => ({
+      id: review.id,
+      authorName: review.authorName,
+      rating: review.rating,
+      reviewText: review.reviewText,
+      createdAt: review.createdAt,
+    }));
+
+    return response({ reviews: formattedReviews });
   } catch (error) {
     console.error("Error fetching reviews:", error instanceof Error ? error.name : "unknown");
     return response({ error: "Internal Server Error" }, 500);
