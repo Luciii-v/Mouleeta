@@ -21,7 +21,7 @@ import { firebaseAuth } from "@/lib/firebase";
 
 interface PhoneOtpFlowProps {
   phone: string;
-  onVerified: (phone: string, type: string) => void;
+  onVerified: (phone: string, type: string, firebaseIdToken?: string) => void;
   onClose: () => void;
   skipSignIn?: boolean;
 }
@@ -186,9 +186,9 @@ export default function PhoneOtpFlow({ phone, onVerified, onClose, skipSignIn }:
     try {
       // Confirm OTP with Firebase and obtain a server-verifiable ID token.
       const credential = await confirmationResult.confirm(fullOtp);
+      const firebaseIdToken = await credential.user.getIdToken();
 
       if (!skipSignIn) {
-        const firebaseIdToken = await credential.user.getIdToken();
         const result = await signIn("otp-verified", {
           target: phone,
           type: "phone",
@@ -200,9 +200,9 @@ export default function PhoneOtpFlow({ phone, onVerified, onClose, skipSignIn }:
         }
       }
 
-      setSuccessMsg("✨ Phone verified successfully!");
+      setSuccessMsg("Phone verified successfully.");
       setTimeout(() => {
-        onVerified(phone, "phone");
+        onVerified(phone, "phone", firebaseIdToken);
         onClose();
       }, 1200);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -50,6 +50,9 @@
 - Pre-remediation sessions are rejected using `securityVersion: 2`; users must reauthenticate.
 - OTPs and API rate limits use Firebase Admin Firestore transactions with HMAC-hashed identifiers.
 - Resolved Vercel ERR_REQUIRE_ESM runtime crash on `/api/auth/*` and `/api/reviews` by decoupling `firebase-admin/auth` (lazy `getAdminAuth()` on demand for phone logins), overriding `jwks-rsa` to `3.1.0` (deduping with CommonJS `jose@4.15.9`), setting `serverExternalPackages: ["firebase-admin"]`, and creating `.nvmrc`/`.node-version` (Node 22).
+- Added Email Code and Mobile SMS OTP login options alongside Google OAuth on `/account/login`.
+- Cleaned up Profile Details notification banner to "Profile details updated successfully." with Quiet Luxury typography and styling.
+- Added cryptographic phone verification flow in Profile Details (via Firebase Phone Auth SMS & verified ID token in `/api/profile`).
 - External next steps:
   1. Rotate Shopify credentials (client secret & admin API tokens) in Shopify admin and update Vercel (completed).
   2. Verify canonical domain and OAuth redirect URLs (`https://www.mouleeta.shop`) (completed).

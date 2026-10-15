@@ -1,16 +1,43 @@
 "use client";
 import React, { useState } from 'react';
 import Image from 'next/image';
-
+import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
-
+import OtpVerificationModal from '@/components/OtpVerificationModal';
 
 export default function LoginPage() {
-
+  const router = useRouter();
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [termsError, setTermsError] = useState(false);
   const [legalModalOpen, setLegalModalOpen] = useState(false);
   const [legalType, setLegalType] = useState("terms");
+
+  const [showOtpInput, setShowOtpInput] = useState(false);
+  const [otpType, setOtpType] = useState<"email" | "phone">("email");
+  const [otpTarget, setOtpTarget] = useState("");
+  const [countryCode, setCountryCode] = useState("+91");
+  const [otpModalOpen, setOtpModalOpen] = useState(false);
+
+  const handleGoogleSignIn = () => {
+    if (!acceptedTerms) {
+      setTermsError(true);
+      return;
+    }
+    setTermsError(false);
+    signIn('google', { callbackUrl: '/account' });
+  };
+
+  const handleOpenOtp = () => {
+    if (!acceptedTerms) {
+      setTermsError(true);
+      return;
+    }
+    if (!otpTarget.trim()) return;
+    setTermsError(false);
+    setOtpModalOpen(true);
+  };
+
   return (
     <main className="min-h-screen flex bg-[#F9F8F6]">
       
@@ -52,12 +79,10 @@ export default function LoginPage() {
           </div>
 
           <div className="flex flex-col gap-5">
-
             <button
               type="button"
-              disabled={!acceptedTerms}
-              onClick={() => signIn('google', { callbackUrl: '/account' })}
-              className="flex items-center justify-center gap-3 w-full bg-[#131314] text-white py-4 text-xs tracking-widest uppercase hover:bg-black transition-colors font-metropolis cursor-pointer border border-stone-800 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleGoogleSignIn}
+              className="flex items-center justify-center gap-3 w-full bg-[#131314] text-white py-4 text-xs tracking-widest uppercase hover:bg-black transition-colors font-metropolis cursor-pointer border border-stone-800 rounded-md shadow-xs"
             >
               <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-5 h-5">
                 <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.7 17.74 9.5 24 9.5z"></path>
@@ -68,25 +93,161 @@ export default function LoginPage() {
               </svg>
               Sign up / Log in with Google
             </button>
+
+            <div className="relative flex items-center py-2">
+              <div className="flex-grow border-t border-stone-200"></div>
+              <span className="flex-shrink-0 mx-4 text-[10px] tracking-widest text-stone-400 uppercase font-metropolis">
+                OR SIGN IN VIA OTP
+              </span>
+              <div className="flex-grow border-t border-stone-200"></div>
+            </div>
+
+            {!showOtpInput ? (
+              <button
+                type="button"
+                onClick={() => {
+                  if (!acceptedTerms) {
+                    setTermsError(true);
+                    return;
+                  }
+                  setTermsError(false);
+                  setShowOtpInput(true);
+                }}
+                className="w-full border border-stone-900 bg-white text-stone-900 py-3.5 text-xs tracking-widest uppercase hover:bg-stone-900 hover:text-white transition-colors cursor-pointer"
+              >
+                Sign In via OTP
+              </button>
+            ) : (
+              <div className="space-y-4 bg-stone-50 border border-stone-200 p-5 animate-fadeIn">
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOtpType("email");
+                      setOtpTarget("");
+                    }}
+                    className={`flex-1 py-2.5 text-[10px] font-medium uppercase tracking-widest transition-colors cursor-pointer ${
+                      otpType === "email"
+                        ? "bg-stone-900 text-white"
+                        : "bg-white border border-stone-200 text-stone-600 hover:text-stone-900"
+                    }`}
+                  >
+                    Email Code
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOtpType("phone");
+                      setOtpTarget("");
+                    }}
+                    className={`flex-1 py-2.5 text-[10px] font-medium uppercase tracking-widest transition-colors cursor-pointer ${
+                      otpType === "phone"
+                        ? "bg-stone-900 text-white"
+                        : "bg-white border border-stone-200 text-stone-600 hover:text-stone-900"
+                    }`}
+                  >
+                    Mobile SMS
+                  </button>
+                </div>
+
+                {otpType === "email" ? (
+                  <input
+                    type="email"
+                    placeholder="Enter email address"
+                    value={otpTarget}
+                    onChange={(e) => setOtpTarget(e.target.value)}
+                    className="w-full border border-stone-300 bg-white px-3.5 py-3 text-sm text-stone-900 focus:outline-none focus:border-black rounded-none"
+                  />
+                ) : (
+                  <div className="flex border border-stone-300 bg-white">
+                    <select
+                      value={countryCode}
+                      onChange={(e) => setCountryCode(e.target.value)}
+                      className="border-r border-stone-300 bg-stone-50 px-3 py-3 text-xs text-stone-700 focus:outline-none cursor-pointer"
+                    >
+                      <option value="+91">+91 (IN)</option>
+                      <option value="+1">+1 (US)</option>
+                      <option value="+44">+44 (UK)</option>
+                      <option value="+971">+971 (AE)</option>
+                      <option value="+33">+33 (FR)</option>
+                      <option value="+61">+61 (AU)</option>
+                      <option value="+65">+65 (SG)</option>
+                      <option value="+49">+49 (DE)</option>
+                      <option value="+81">+81 (JP)</option>
+                      <option value="+39">+39 (IT)</option>
+                      <option value="+34">+34 (ES)</option>
+                      <option value="+41">+41 (CH)</option>
+                      <option value="+966">+966 (SA)</option>
+                      <option value="+974">+974 (QA)</option>
+                    </select>
+                    <input
+                      type="tel"
+                      placeholder="Enter mobile number"
+                      value={otpTarget}
+                      onChange={(e) => setOtpTarget(e.target.value)}
+                      className="w-full px-3.5 py-3 text-sm text-stone-900 focus:outline-none bg-transparent rounded-none"
+                    />
+                  </div>
+                )}
+
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowOtpInput(false)}
+                    className="w-1/3 border border-stone-300 bg-white py-2.5 text-[11px] uppercase tracking-wider text-stone-600 hover:text-black cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!otpTarget.trim()}
+                    onClick={handleOpenOtp}
+                    className="w-2/3 bg-stone-900 text-white py-2.5 text-[11px] uppercase tracking-widest hover:bg-black transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    Send Code
+                  </button>
+                </div>
+              </div>
+            )}
             
-            <div className="mt-8 flex items-start gap-3">
-              <input 
-                type="checkbox" 
-                id="terms-checkbox"
-                checked={acceptedTerms}
-                onChange={(e) => setAcceptedTerms(e.target.checked)}
-                className="mt-0.5 w-4 h-4 rounded border-stone-300 text-stone-900 focus:ring-stone-900 cursor-pointer accent-stone-800"
-              />
-              <label htmlFor="terms-checkbox" className="text-[11px] text-stone-400 font-inter cursor-pointer leading-relaxed">
-                By signing in, I agree to the 
-                <span onClick={(e) => { e.preventDefault(); setLegalType("terms"); setLegalModalOpen(true); }} className="hover:text-stone-600 transition-colors mx-1 cursor-pointer underline underline-offset-2">Terms &amp; Conditions</span> 
-                and 
-                <span onClick={(e) => { e.preventDefault(); setLegalType("privacy"); setLegalModalOpen(true); }} className="hover:text-stone-600 transition-colors ml-1 cursor-pointer underline underline-offset-2">Privacy Policy</span>.
-              </label>
+            <div className="mt-4 flex flex-col gap-2">
+              <div className="flex items-start gap-3">
+                <input 
+                  type="checkbox" 
+                  id="terms-checkbox"
+                  checked={acceptedTerms}
+                  onChange={(e) => {
+                    setAcceptedTerms(e.target.checked);
+                    if (e.target.checked) setTermsError(false);
+                  }}
+                  className="mt-0.5 w-4 h-4 rounded border-stone-300 text-stone-900 focus:ring-stone-900 cursor-pointer accent-stone-800"
+                />
+                <label htmlFor="terms-checkbox" className="text-[11px] text-stone-400 font-inter cursor-pointer leading-relaxed">
+                  By signing in, I agree to the 
+                  <span onClick={(e) => { e.preventDefault(); setLegalType("terms"); setLegalModalOpen(true); }} className="hover:text-stone-600 transition-colors mx-1 cursor-pointer underline underline-offset-2">Terms &amp; Conditions</span> 
+                  and 
+                  <span onClick={(e) => { e.preventDefault(); setLegalType("privacy"); setLegalModalOpen(true); }} className="hover:text-stone-600 transition-colors ml-1 cursor-pointer underline underline-offset-2">Privacy Policy</span>.
+                </label>
+              </div>
+              {termsError && (
+                <p className="text-[11px] text-red-600 font-inter">
+                  Please accept the Terms &amp; Conditions and Privacy Policy to continue.
+                </p>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      <OtpVerificationModal
+        isOpen={otpModalOpen}
+        onClose={() => setOtpModalOpen(false)}
+        target={otpType === "phone" ? `${countryCode} ${otpTarget}`.trim() : otpTarget.trim()}
+        type={otpType}
+        onVerified={() => {
+          router.push('/account');
+        }}
+      />
 
 
       {/* Legal Modal */}

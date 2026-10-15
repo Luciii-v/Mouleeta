@@ -20,6 +20,8 @@ export default function ProfilePage() {
   });
   const [showNotification, setShowNotification] = useState(false);
   const [verifiedEmail, setVerifiedEmail] = useState("");
+  const [phoneVerified, setPhoneVerified] = useState(false);
+  const [verifiedPhone, setVerifiedPhone] = useState("");
 
   // Populate form from profile once available
   useEffect(() => {
@@ -54,6 +56,8 @@ export default function ProfilePage() {
           acceptsMarketing: profile.marketingOptIn || false,
         }));
         setVerifiedEmail(email);
+        setPhoneVerified(profile.phoneVerified === true);
+        setVerifiedPhone(profile.phoneNumber || "");
       }, 0);
     } else if (session?.user && !loading) {
       // Fallback to session if no profile exists yet (should be seeded, but just in case)
@@ -106,9 +110,13 @@ export default function ProfilePage() {
 
   const handleSave = async (e) => {
     e.preventDefault();
-    const currentFullPhone = `${formData.countryCode} ${formData.phone}`.trim();
+    const currentFullPhone = formData.phone ? `${formData.countryCode} ${formData.phone}`.trim() : "";
     if (formData.email !== verifiedEmail) {
       setOtpModal({ isOpen: true, target: formData.email, type: "email" });
+      return;
+    }
+    if (currentFullPhone && (!phoneVerified || currentFullPhone !== verifiedPhone)) {
+      setOtpModal({ isOpen: true, target: currentFullPhone, type: "phone" });
       return;
     }
     setIsEditing(false);
@@ -129,9 +137,29 @@ export default function ProfilePage() {
     }
   };
 
-  const handleOtpVerified = (target, type) => {
+  const handleOtpVerified = async (target, type, firebaseIdToken) => {
     if (type === "email") {
       setVerifiedEmail(target);
+      try {
+        await saveProfile({ email: target });
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 5000);
+      } catch (err) {
+        console.error("Failed to update email:", err);
+      }
+    } else if (type === "phone") {
+      setPhoneVerified(true);
+      setVerifiedPhone(target);
+      try {
+        await saveProfile({
+          phoneNumber: target,
+          firebaseIdToken,
+        });
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 5000);
+      } catch (err) {
+        console.error("Failed to update verified phone:", err);
+      }
     }
   };
 
@@ -154,17 +182,17 @@ export default function ProfilePage() {
           <h1 className="text-2xl sm:text-3xl font-light tracking-tight text-gray-900">
             Profile Details
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Your Mouleeta Privé profile. Full order history available after connecting your Shopify account.
+          <p className="text-sm text-stone-500 mt-1">
+            Your Mouleeta Privé profile and member preferences.
           </p>
         </div>
       </div>
 
       {/* Notification Toast */}
       {showNotification && (
-        <div className="bg-black text-white px-5 py-3.5 rounded-sm flex items-center justify-between text-xs tracking-wider animate-fadeIn shadow-lg">
-          <span>✓ Profile saved locally. Shopify Customer API sync coming soon.</span>
-          <button onClick={() => setShowNotification(false)} className="text-gray-400 hover:text-white cursor-pointer">✕</button>
+        <div className="bg-[#1A1A1A] text-white px-5 py-3.5 rounded-none flex items-center justify-between text-xs tracking-widest uppercase animate-fadeIn shadow-lg">
+          <span>Profile details updated successfully.</span>
+          <button onClick={() => setShowNotification(false)} className="text-stone-400 hover:text-white cursor-pointer ml-4">✕</button>
         </div>
       )}
 
@@ -240,7 +268,7 @@ export default function ProfilePage() {
                 ) : (
                   <div className="flex items-center gap-2">
                     <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-amber-700 bg-amber-50 px-2 py-0.5 border border-amber-200">
-                      ⚠️ Unverified
+                      Unverified
                     </span>
                     <button
                       type="button"
@@ -276,6 +304,26 @@ export default function ProfilePage() {
                 >
                   Phone Number
                 </label>
+                {formData.phone ? (
+                  phoneVerified && `${formData.countryCode} ${formData.phone}`.trim() === verifiedPhone ? (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 border border-emerald-200">
+                      ✓ Verified
+                    </span>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-amber-700 bg-amber-50 px-2 py-0.5 border border-amber-200">
+                        Unverified
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setOtpModal({ isOpen: true, target: `${formData.countryCode} ${formData.phone}`.trim(), type: "phone" })}
+                        className="text-[10px] font-bold uppercase tracking-wider text-black underline hover:text-gray-600 transition-colors cursor-pointer"
+                      >
+                        Verify via SMS
+                      </button>
+                    </div>
+                  )
+                ) : null}
               </div>
               {isEditing ? (
                 <div className="flex">

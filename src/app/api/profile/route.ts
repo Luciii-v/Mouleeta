@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { adminDb } from "@/lib/firebase-admin";
+import { adminDb, getAdminAuth } from "@/lib/firebase-admin";
 import type { DocumentData } from "firebase-admin/firestore";
 
 const allowedGenders = new Set(["Select", "Female", "Male", "Non-binary", "Other"]);
@@ -118,8 +118,34 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Invalid phone number" }, { status: 400 });
       }
       allowedUpdates.phoneNumber = body.phoneNumber === null ? null : body.phoneNumber.trim();
-      // A changed phone number is never considered verified automatically.
+      // Default to unverified on direct edit unless a valid Firebase ID token is presented
       allowedUpdates.phoneVerified = false;
+    }
+
+    if (
+      body.firebaseIdToken &&
+      typeof body.firebaseIdToken === "string" &&
+      body.firebaseIdToken.length <= 10000
+    ) {
+      try {
+        const adminAuth = await getAdminAuth();
+        if (adminAuth) {
+          const decoded = await adminAuth.verifyIdToken(body.firebaseIdToken, true);
+          const phoneNumber = decoded.phone_number;
+          const authAge = Date.now() / 1000 - decoded.auth_time;
+          if (
+            phoneNumber &&
+            decoded.firebase.sign_in_provider === "phone" &&
+            authAge >= -60 &&
+            authAge <= 300
+          ) {
+            allowedUpdates.phoneNumber = phoneNumber;
+            allowedUpdates.phoneVerified = true;
+          }
+        }
+      } catch (err) {
+        console.error("Phone verification token invalid:", err);
+      }
     }
 
     const ref = adminDb.collection("users").doc(uid);

@@ -55,7 +55,7 @@ export function useProfile() {
   }, [uid, status]);
 
   const saveProfile = useCallback(
-    async (updates: Partial<UserProfile>) => {
+    async (updates: Partial<UserProfile> & { firebaseIdToken?: string }) => {
       if (!uid) throw new Error("Not authenticated");
       
       const res = await fetch("/api/profile", {

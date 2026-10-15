@@ -151,7 +151,7 @@ export default function OtpVerificationModal({
         }
       }
 
-      setSuccessMsg("✨ Email verified successfully!");
+      setSuccessMsg("Email verified successfully.");
       setTimeout(() => {
         onVerified(target, "email");
         onClose();
