@@ -1,10 +1,10 @@
 import "server-only";
 import { initializeApp, getApps, getApp, cert } from "firebase-admin/app";
 import { getFirestore, Firestore } from "firebase-admin/firestore";
-import { getAuth, Auth } from "firebase-admin/auth";
+import type { Auth } from "firebase-admin/auth";
 
 let adminDb: Firestore | null = null;
-let adminAuth: Auth | null = null;
+let adminAuthInstance: Auth | null = null;
 
 if (!getApps().length) {
   try {
@@ -28,9 +28,22 @@ if (!getApps().length) {
 // Only call getFirestore() if an app was successfully initialized
 try {
   adminDb = getFirestore(getApp());
-  adminAuth = getAuth(getApp());
 } catch {
   console.warn("Firebase Admin: Firestore unavailable — app not initialized.");
 }
 
-export { adminAuth, adminDb };
+export async function getAdminAuth(): Promise<Auth | null> {
+  if (adminAuthInstance) return adminAuthInstance;
+  try {
+    if (!getApps().length) return null;
+    const { getAuth } = await import("firebase-admin/auth");
+    adminAuthInstance = getAuth(getApp());
+    return adminAuthInstance;
+  } catch (error) {
+    console.error("Firebase Admin Auth unavailable:", error);
+    return null;
+  }
+}
+
+export { adminDb };
+

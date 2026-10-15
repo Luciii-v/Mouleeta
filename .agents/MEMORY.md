@@ -49,8 +49,9 @@
 - GitHub Actions CI/CD completed with full success and automatically deployed to Vercel Production.
 - Pre-remediation sessions are rejected using `securityVersion: 2`; users must reauthenticate.
 - OTPs and API rate limits use Firebase Admin Firestore transactions with HMAC-hashed identifiers.
+- Resolved Vercel ERR_REQUIRE_ESM runtime crash on `/api/auth/*` and `/api/reviews` by decoupling `firebase-admin/auth` (lazy `getAdminAuth()` on demand for phone logins), overriding `jwks-rsa` to `3.1.0` (deduping with CommonJS `jose@4.15.9`), setting `serverExternalPackages: ["firebase-admin"]`, and creating `.nvmrc`/`.node-version` (Node 22).
 - External next steps:
-  1. Rotate Shopify credentials (client secret & admin API tokens) in Shopify admin and update Vercel.
-  2. Verify canonical domain and OAuth redirect URLs (`https://www.mouleeta.shop`).
+  1. Rotate Shopify credentials (client secret & admin API tokens) in Shopify admin and update Vercel (completed).
+  2. Verify canonical domain and OAuth redirect URLs (`https://www.mouleeta.shop`) (completed).
   3. Revisit Firestore TTL in Google Cloud Console now that production collections are active.
   4. Perform smoke/staging tests for auth, OTP, checkout, and tracking flows.

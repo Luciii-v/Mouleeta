@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 import NextAuth, { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { adminAuth } from "@/lib/firebase-admin";
+import { getAdminAuth } from "@/lib/firebase-admin";
 import { consumeOtp, normalizeEmail } from "@/lib/otp";
 import { isRateLimited, requestAddress } from "@/lib/rate-limit";
 
@@ -59,8 +59,10 @@ export const authOptions: NextAuthOptions = {
           };
         }
 
-        if (type === "phone" && firebaseIdToken && firebaseIdToken.length <= 10000 && adminAuth) {
+        if (type === "phone" && firebaseIdToken && firebaseIdToken.length <= 10000) {
           try {
+            const adminAuth = await getAdminAuth();
+            if (!adminAuth) return null;
             const client = requestAddress({ headers: new Headers(request.headers) });
             if (await isRateLimited(`phone-login:ip:${client}`, 30, 10 * 60 * 1000)) return null;
             const decoded = await adminAuth.verifyIdToken(firebaseIdToken, true);
