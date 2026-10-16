@@ -1,6 +1,6 @@
 // Baseline security headers. script-src retains unsafe-inline for static
 // Next.js hydration; see SECURITY.md for the nonce/hash migration tradeoff.
-const scriptSrc = "script-src 'self' 'unsafe-inline' https://cdn.shopify.com https://checkout.razorpay.com https://cdn1.judge.me https://judge.me https://*.judge.me";
+const scriptSrc = "script-src 'self' 'unsafe-inline' https://cdn.shopify.com https://checkout.razorpay.com https://cdn1.judge.me https://judge.me https://*.judge.me https://www.google.com https://www.gstatic.com https://www.recaptcha.net https://recaptcha.net";
 const websocketSources = process.env.NODE_ENV === 'development'
   ? "ws: wss:"
   : "wss://*.firebaseio.com wss://*.firebasedatabase.app";
@@ -23,11 +23,11 @@ const securityHeaders = [
       "object-src 'none'",
       "frame-ancestors 'self'",
       "form-action 'self' https://checkout.mouleeta.shop https://*.myshopify.com",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn1.judge.me https://judge.me",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn1.judge.me https://judge.me https://www.gstatic.com",
       "font-src 'self' https://fonts.gstatic.com data:",
-      "img-src 'self' data: blob: https://cdn.shopify.com https://lh3.googleusercontent.com https://www.gstatic.com",
-      "frame-src 'self' https://www.google.com https://recaptcha.google.com https://*.firebaseapp.com https://mouleeta-shop.firebaseapp.com",
-      `connect-src 'self' ${websocketSources} https://*.googleapis.com https://*.firebaseio.com https://*.firebasedatabase.app https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://api.resend.com https://kvd0hr-0x.myshopify.com https://apiv2.shiprocket.in https://judge.me`,
+      "img-src 'self' data: blob: https://cdn.shopify.com https://lh3.googleusercontent.com https://www.gstatic.com https://www.google.com https://*.google.com",
+      "frame-src 'self' https://www.google.com https://recaptcha.google.com https://www.recaptcha.net https://recaptcha.net https://*.firebaseapp.com https://mouleeta-shop.firebaseapp.com",
+      `connect-src 'self' ${websocketSources} https://*.googleapis.com https://*.firebaseio.com https://*.firebasedatabase.app https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.google.com https://www.gstatic.com https://www.recaptcha.net https://recaptcha.net https://api.resend.com https://kvd0hr-0x.myshopify.com https://apiv2.shiprocket.in https://judge.me`,
       "worker-src 'self' blob:",
     ].join("; "),
   },

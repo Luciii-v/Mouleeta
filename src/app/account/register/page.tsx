@@ -78,7 +78,7 @@ export default function RegisterPage() {
                     otpType === "email" ? "bg-black text-white" : "bg-white border border-stone-200 text-stone-600"
                   }`}
                 >
-                  📧 Email OTP
+                  Email Code
                 </button>
                 <button
                   type="button"
@@ -87,12 +87,12 @@ export default function RegisterPage() {
                     otpType === "phone" ? "bg-black text-white" : "bg-white border border-stone-200 text-stone-600"
                   }`}
                 >
-                  📱 Phone SMS
+                  Mobile SMS
                 </button>
               </div>
               <input
                 type={otpType === "email" ? "email" : "tel"}
-                placeholder={otpType === "email" ? "Enter your email (e.g. name@domain.com)" : "Enter mobile (+91 98200...)"}
+                placeholder={otpType === "email" ? "Enter your email address" : "Enter mobile (+91 98200...)"}
                 value={otpTarget}
                 onChange={(e) => setOtpTarget(e.target.value)}
                 className="w-full border border-stone-300 bg-white px-3.5 py-3 text-sm text-stone-900 focus:outline-none focus:border-black rounded-none"
@@ -111,7 +111,7 @@ export default function RegisterPage() {
                   onClick={() => setOtpModalOpen(true)}
                   className="w-2/3 bg-black text-white py-2.5 text-[11px] font-medium uppercase tracking-wider hover:bg-stone-800 transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
                 >
-                  Dispatch Passcode →
+                  Send Code
                 </button>
               </div>
             </div>

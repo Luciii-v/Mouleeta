@@ -210,7 +210,7 @@ export default function OtpVerificationModal({
                 Privé Email Verification
               </h3>
               <p className="text-xs text-stone-500 mt-1.5 leading-relaxed">
-                {sending ? "Dispatching your verification code via Resend…" : (
+                {sending ? "Dispatching your verification code…" : (
                   <>
                     Code sent to <span className="font-medium text-stone-800">{target}</span>. Enter below to verify.
                   </>
@@ -234,7 +234,7 @@ export default function OtpVerificationModal({
                   }}
                   className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider transition-colors cursor-pointer rounded-sm"
                 >
-                  ⚡ Auto-Fill
+                  Auto-Fill
                 </button>
               </div>
             )}
@@ -258,7 +258,7 @@ export default function OtpVerificationModal({
 
             {error && (
               <div className="mb-4 text-xs text-red-600 bg-red-50 border border-red-200 px-3 py-2 text-center rounded-sm font-medium">
-                ⚠️ {error}
+                {error}
               </div>
             )}
             {successMsg && (
@@ -276,7 +276,7 @@ export default function OtpVerificationModal({
               {loading ? "Verifying…" : "Verify Email Code"}
             </button>
 
-            <div className="text-center">
+            <div className="text-center space-y-2">
               {countdown > 0 ? (
                 <p className="text-[11px] text-stone-400 tracking-wider">
                   Resend in <span className="font-mono text-stone-600">0:{countdown < 10 ? `0${countdown}` : countdown}</span>
@@ -288,9 +288,12 @@ export default function OtpVerificationModal({
                   disabled={sending}
                   className="text-xs text-stone-900 font-medium uppercase tracking-wider underline hover:text-stone-600 transition-colors cursor-pointer"
                 >
-                  {sending ? "Sending…" : "Resend via Resend"}
+                  {sending ? "Sending…" : "Resend Code"}
                 </button>
               )}
+              <p className="text-[10px] text-stone-400 tracking-wide">
+                Please check your inbox as well as your spam or junk folder.
+              </p>
             </div>
           </>
         )}

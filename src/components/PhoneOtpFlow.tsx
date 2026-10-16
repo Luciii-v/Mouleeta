@@ -38,13 +38,13 @@ export default function PhoneOtpFlow({ phone, onVerified, onClose, skipSignIn }:
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const recaptchaContainerRef = useRef<HTMLDivElement>(null);
 
-  // Normalise Indian phone numbers: ensure +91 prefix
+  // Normalise phone numbers to E.164: e.g. +919820012345
   const normalisePhone = (raw: string) => {
     const digits = raw.replace(/\D/g, "");
     if (digits.length === 10) return `+91${digits}`;
     if (digits.startsWith("91") && digits.length === 12) return `+${digits}`;
     if (digits.startsWith("0") && digits.length === 11) return `+91${digits.slice(1)}`;
-    return raw.startsWith("+") ? raw : `+${digits}`;
+    return `+${digits}`;
   };
 
   // Setup invisible reCAPTCHA on mount
@@ -68,7 +68,7 @@ export default function PhoneOtpFlow({ phone, onVerified, onClose, skipSignIn }:
         size: "invisible",
         callback: () => {},
         "expired-callback": () => {
-          setError("reCAPTCHA expired. Please request a new code.");
+          setError("Security check expired. Please request a new code.");
         },
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -90,7 +90,7 @@ export default function PhoneOtpFlow({ phone, onVerified, onClose, skipSignIn }:
       const normalised = normalisePhone(phone);
 
       const verifier = initRecaptcha();
-      if (!verifier) throw new Error("reCAPTCHA not ready — please refresh.");
+      if (!verifier) throw new Error("Security verification is not ready. Please refresh.");
 
       const result = await signInWithPhoneNumber(firebaseAuth, normalised, verifier);
       setConfirmationResult(result);
@@ -99,18 +99,35 @@ export default function PhoneOtpFlow({ phone, onVerified, onClose, skipSignIn }:
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error("Firebase phone auth error:", err);
+      // Clear verifier on error so subsequent attempts get a fresh challenge
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((window as any).recaptchaVerifier) {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (window as any).recaptchaVerifier.clear();
+        } catch {
+          // ignore
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (window as any).recaptchaVerifier = null;
+      }
+
       if (err.code === "auth/invalid-phone-number") {
-        setError("Invalid phone number. Please use format: +91 98200 12345.");
+        setError("Invalid phone number. Please enter a valid mobile number with country code.");
       } else if (err.code === "auth/too-many-requests") {
         setError("Too many attempts. Please wait a few minutes and try again.");
       } else if (err.code === "auth/quota-exceeded") {
-        setError("SMS quota exceeded. Please try again tomorrow or use Email OTP instead.");
+        setError("SMS quota reached for today. Please sign in with Email Code instead.");
       } else if (err.code === "auth/captcha-check-failed") {
         setError("Security check failed. Please refresh the page and try again.");
       } else if (err.code === "auth/missing-phone-number") {
         setError("Please enter a valid phone number.");
+      } else if (err.code === "auth/unauthorized-domain") {
+        setError("Domain not authorized in Firebase Console. Please add mouleeta.shop to Firebase Authentication Authorized Domains.");
+      } else if (err.code === "auth/network-request-failed") {
+        setError("Network connection issue. Please check your internet connection.");
       } else {
-        setError(err.message || "Failed to send OTP. Please try again.");
+        setError(err.message || "Failed to send code. Please try again.");
       }
     } finally {
       setSending(false);
@@ -237,8 +254,7 @@ export default function PhoneOtpFlow({ phone, onVerified, onClose, skipSignIn }:
         <p className="text-xs text-stone-500 mt-1.5 leading-relaxed">
           {sending ? "Dispatching your verification code…" : (
             <>
-              Code sent to <span className="font-medium text-stone-800">{phone}</span>
-              {" "}via Firebase Auth.
+              Code sent to <span className="font-medium text-stone-800">{phone}</span>.
             </>
           )}
         </p>
@@ -266,13 +282,13 @@ export default function PhoneOtpFlow({ phone, onVerified, onClose, skipSignIn }:
       {sending && (
         <div className="mb-4 flex items-center justify-center gap-2 text-xs text-stone-500 tracking-wider">
           <div className="w-3 h-3 border border-stone-400 border-t-transparent rounded-full animate-spin" />
-          Dispatching via Google Firebase…
+          Dispatching verification code…
         </div>
       )}
 
       {error && (
         <div className="mb-4 text-xs text-red-600 bg-red-50 border border-red-200 px-3 py-2 text-center rounded-sm font-medium">
-          ⚠️ {error}
+          {error}
         </div>
       )}
 
@@ -299,7 +315,7 @@ export default function PhoneOtpFlow({ phone, onVerified, onClose, skipSignIn }:
           disabled={sending || countdown > 0}
           className="text-[10px] font-semibold uppercase tracking-widest text-gray-500 hover:text-black transition-colors underline disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {sending ? "SENDING..." : countdown > 0 ? `RESEND IN ${countdown}s` : "RESEND VIA FIREBASE"}
+          {sending ? "SENDING..." : countdown > 0 ? `RESEND IN ${countdown}s` : "RESEND CODE"}
         </button>
       </div>
     </div>
