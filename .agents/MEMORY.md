@@ -58,3 +58,18 @@
   2. Verify canonical domain and OAuth redirect URLs (`https://www.mouleeta.shop`) (completed).
   3. Revisit Firestore TTL in Google Cloud Console now that production collections are active.
   4. Perform smoke/staging tests for auth, OTP, checkout, and tracking flows.
+
+## OTP Delivery Remediation & Production Deployment (Oct 16, 2026)
+- **Root Cause Identified**: The browser blocked Google reCAPTCHA during Firebase Phone Auth because `next.config.mjs` lacked `https://www.google.com`, `https://www.gstatic.com`, and `https://www.recaptcha.net` in `script-src`, `connect-src`, and `frame-src`. Without reCAPTCHA execution, Firebase's SMS gateway was never invoked.
+- **CSP Resolution**: Updated `next.config.mjs` to comprehensively allow Google reCAPTCHA domains across `script-src`, `connect-src`, `frame-src`, `img-src`, and `style-src`. Verified live response headers on `https://www.mouleeta.shop/account/login`.
+- **Phone Auth Hardening**:
+  - Normalized all phone inputs to strict E.164 (stripping whitespace, parentheses, and dashes; defaulting 10-digit inputs to `+91`).
+  - Added robust reCAPTCHA instance cleanup on failure to guarantee retry attempts receive a fresh verification challenge.
+  - Added explicit user-friendly diagnostics for `auth/unauthorized-domain` and `auth/network-request-failed`.
+- **Brand Consistency & Luxury Aesthetics**:
+  - Eliminated all emojis across `PhoneOtpFlow.tsx`, `OtpVerificationModal.jsx`, and `src/app/account/register/page.tsx`.
+  - Replaced third-party vendor strings ("via Resend", "via Firebase Auth") with brand-aligned Quiet Luxury copy ("Mouleeta Privé", "Resend Code").
+  - Added inbox and spam/junk folder reminder text to the Email Code verification modal.
+- **Verification & Deployment**:
+  - Verified 0 ESLint errors, 0 TypeScript errors, 17/17 security tests passing, and 25/25 static pages compiled.
+  - Pushed to `main` (`ed6e2c9`), passed CI/CD in 2m55s, and deployed live to Vercel production.
